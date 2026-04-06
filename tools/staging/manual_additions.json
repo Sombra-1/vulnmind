@@ -1,0 +1,108 @@
+{
+  "redis": [
+    {
+      "product": null,
+      "version_match": null,
+      "version_before": null,
+      "priority": "high",
+      "cves": [],
+      "description": "Redis server found running. If it is exposed without a password, it can lead to remote code execution (RCE) via SSH key writing or cron job manipulation.",
+      "suggested_commands": ["redis-cli -h {host} -p {port} info", "nmap -p {port} --script redis-info {host}"],
+      "metasploit_modules": ["auxiliary/scanner/redis/redis_login", "exploit/linux/redis/redis_replication_cmd_exec"]
+    }
+  ],
+  "mongodb": [
+    {
+      "product": null,
+      "version_match": null,
+      "version_before": null,
+      "priority": "high",
+      "cves": [],
+      "description": "MongoDB server found running. Unauthenticated access can lead to complete database dump and modification. Ensure authentication is enabled.",
+      "suggested_commands": ["mongo --host {host} --port {port}", "nmap -p {port} --script mongodb-info {host}"],
+      "metasploit_modules": ["auxiliary/scanner/mongodb/mongodb_login"]
+    }
+  ],
+  "tomcat": [
+    {
+      "product": null,
+      "version_match": null,
+      "version_before": null,
+      "priority": "high",
+      "cves": [],
+      "description": "Apache Tomcat server found running. Check for default credentials (tomcat:tomcat) on the manager application which can allow WAR file deployment for RCE.",
+      "suggested_commands": ["nmap -p {port} --script http-tomcat-mgr-enum {host}"],
+      "metasploit_modules": ["exploit/multi/http/tomcat_mgr_upload", "auxiliary/scanner/http/tomcat_mgr_login"]
+    }
+  ],
+  "weblogic": [
+    {
+      "product": null,
+      "version_match": null,
+      "version_before": null,
+      "priority": "critical",
+      "cves": ["CVE-2020-14882", "CVE-2017-10271"],
+      "description": "Oracle WebLogic server found running. Historically affected by numerous critical RCE vulnerabilities via deserialization and console bypass.",
+      "suggested_commands": ["nmap -p {port} --script weblogic-t3-info {host}"],
+      "metasploit_modules": ["exploit/multi/misc/weblogic_deserialize_asyncresponseservice", "exploit/windows/misc/weblogic_xmlentity_rce"]
+    }
+  ],
+  "microsoft-ds": [
+    {
+      "product": "samba",
+      "version_match": null,
+      "version_before": "4.13.17",
+      "priority": "critical",
+      "cves": ["CVE-2021-44142"],
+      "description": "Samba vfs_fruit module allows out-of-bounds heap read and write via extended file attributes, leading to remote code execution as root.",
+      "suggested_commands": ["smbclient -L //{host} -N -p {port}"],
+      "metasploit_modules": ["exploit/linux/samba/is_known_pipename"]
+    },
+    {
+      "product": "samba",
+      "version_match": "3.0.20",
+      "version_before": null,
+      "priority": "critical",
+      "cves": ["CVE-2007-2447"],
+      "description": "Samba 3.0.20 username map script vulnerability allows unauthenticated remote code execution via shell metacharacters in the username.",
+      "suggested_commands": ["smbclient -L //{host} -N -p {port}"],
+      "metasploit_modules": ["exploit/multi/samba/usermap_script"]
+    }
+  ],
+  "mssql": [
+    {
+      "product": null,
+      "version_match": null,
+      "version_before": null,
+      "priority": "high",
+      "cves": [],
+      "description": "Microsoft SQL Server found running. Weak credentials (e.g., sa:sa) can lead to command execution via xp_cmdshell if enabled.",
+      "suggested_commands": ["nmap -p {port} --script ms-sql-info,ms-sql-empty-password {host}"],
+      "metasploit_modules": ["auxiliary/scanner/mssql/mssql_login", "exploit/windows/mssql/mssql_payload"]
+    }
+  ],
+  "docker": [
+    {
+      "product": null,
+      "version_match": null,
+      "version_before": null,
+      "priority": "critical",
+      "cves": [],
+      "description": "Docker daemon API found exposed. Unauthenticated access allows full control over the host via privileged container creation and mounting the root filesystem.",
+      "suggested_commands": ["curl -s http://{host}:{port}/containers/json", "docker -H tcp://{host}:{port} ps"],
+      "metasploit_modules": ["exploit/linux/local/docker_daemon_privilege_escalation"]
+    }
+  ],
+  "postgresql": [
+    {
+      "product": null,
+      "version_match": null,
+      "version_before": null,
+      "priority": "medium",
+      "cves": [],
+      "description": "PostgreSQL database found running. Check for default credentials (postgres:postgres). Authenticated attackers can use COPY TO PROGRAM for code execution.",
+      "suggested_commands": ["psql -h {host} -p {port} -U postgres"],
+      "metasploit_modules": ["auxiliary/scanner/postgres/postgres_login", "exploit/multi/postgres/postgres_copy_from_program_cmd_exec"]
+    }
+  ]
+}

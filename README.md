@@ -75,7 +75,7 @@ vulnmind analyze scan.xml --enrich
 
 `--enrich` adds plain-English explanations, more specific commands, and false positive assessment.
 
-### PDF report (Pro)
+### PDF report (Enrich)
 
 ```bash
 vulnmind analyze scan.xml --enrich --report pdf
@@ -106,12 +106,12 @@ VulnMind auto-detects the format — no need to specify it.
 - Multi-file analysis with automatic deduplication
 - Clean terminal output with Rich
 
-**Pro**
+**Enrich**
 - Deep analysis via `--enrich` (plain-English explanations, false positive filtering)
 - PDF report generation
 - Priority support
 
-Get a Pro license at **vulnmind.io** (coming soon)
+Get a Enrich license at **vulnmind.io** (coming soon)
 
 ---
 

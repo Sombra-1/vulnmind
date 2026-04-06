@@ -1,7 +1,7 @@
 """
 report.py — Generate professional PDF security reports with ReportLab.
 
-This is a Pro-only feature, gated before this module is imported.
+This is a Enrich-only feature, gated before this module is imported.
 
 Why ReportLab?
   Most established Python PDF library. Full control over layout.

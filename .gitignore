@@ -38,6 +38,12 @@ Thumbs.db
 scan.*
 vulnmind_report.*
 
+# Allow the bundled test samples
+!tests/sample_nmap.xml
+
+# Internal Claude workspace file — not for public repo
+memory.md
+
 # Config (contains API keys)
 .vulnmind/
 

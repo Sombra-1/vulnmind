@@ -117,6 +117,18 @@ def _normalise_service(service: str) -> str:
         "telnet":       "telnet",
         "ms-wbt-server":"rdp",
         "rdp":          "rdp",
+        "redis":        "redis",
+        "mongodb":      "mongodb",
+        "mongod":       "mongodb",
+        "tomcat":       "tomcat",
+        "http-tomcat":  "tomcat",
+        "weblogic":     "weblogic",
+        "samba":        "microsoft-ds",
+        "ms-sql-s":     "mssql",
+        "mssql":        "mssql",
+        "docker":       "docker",
+        "postgresql":   "postgresql",
+        "postgres":     "postgresql",
     }
     return aliases.get(service, service)
 
@@ -157,6 +169,15 @@ def _extract_product_version(finding) -> tuple:
         (r"portable sdk.*upnp", "portable sdk for upnp"),
         (r"mysql",              "mysql"),
         (r"mariadb",            "mysql"),
+        (r"redis",              "redis"),
+        (r"mongodb",            "mongodb"),
+        (r"tomcat",             "tomcat"),
+        (r"weblogic",           "weblogic"),
+        (r"samba",              "samba"),
+        (r"microsoft sql server", "mssql"),
+        (r"mssql",              "mssql"),
+        (r"docker",             "docker"),
+        (r"postgresql",         "postgresql"),
     ]
     for pattern, name in product_patterns:
         if re.search(pattern, text):

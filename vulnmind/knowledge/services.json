@@ -1,226 +1,50 @@
 {
-  "ssh": [
-    {
-      "product": "dropbear",
-      "version_before": "2020.80",
-      "priority": "high",
-      "cves": ["CVE-2018-15599", "CVE-2017-9078", "CVE-2016-7406"],
-      "description": "Dropbear SSH older than 2020.80 has multiple known vulnerabilities including use-after-free and buffer overflow issues.",
-      "suggested_commands": [
-        "nmap -sV --script ssh-auth-methods -p {port} {host}",
-        "nmap -sV --script ssh2-enum-algos -p {port} {host}",
-        "hydra -l root -P /usr/share/wordlists/rockyou.txt ssh://{host}:{port}"
-      ],
-      "metasploit_modules": [
-        "auxiliary/scanner/ssh/ssh_login",
-        "auxiliary/scanner/ssh/ssh_enumusers"
-      ]
-    },
-    {
-      "product": "openssh",
-      "version_before": "8.0",
-      "priority": "medium",
-      "cves": ["CVE-2019-6111", "CVE-2018-15473"],
-      "description": "OpenSSH versions before 8.0 are vulnerable to user enumeration (CVE-2018-15473) and other issues.",
-      "suggested_commands": [
-        "nmap -sV --script ssh-auth-methods -p {port} {host}",
-        "ssh -v {host} -p {port}"
-      ],
-      "metasploit_modules": [
-        "auxiliary/scanner/ssh/ssh_enumusers"
-      ]
-    },
-    {
-      "product": "openssh",
-      "version_before": "7.0",
-      "priority": "high",
-      "cves": ["CVE-2016-0777", "CVE-2016-0778", "CVE-2015-5600"],
-      "description": "OpenSSH before 7.0 has critical vulnerabilities including roaming feature memory disclosure (CVE-2016-0777).",
-      "suggested_commands": [
-        "nmap -sV --script ssh-auth-methods -p {port} {host}",
-        "ssh -v {host} -p {port}"
-      ],
-      "metasploit_modules": [
-        "auxiliary/scanner/ssh/ssh_login"
-      ]
-    }
-  ],
-  "ftp": [
-    {
-      "product": "vsftpd",
-      "version_match": "2.3.4",
-      "priority": "critical",
-      "cves": ["CVE-2011-2523"],
-      "description": "vsftpd 2.3.4 contains a backdoor. Sending a smiley face ':)' as the username opens a root shell on port 6200.",
-      "suggested_commands": [
-        "nmap -p 6200 {host}",
-        "telnet {host} 6200"
-      ],
-      "metasploit_modules": [
-        "exploit/unix/ftp/vsftpd_234_backdoor"
-      ]
-    },
-    {
-      "product": "proftpd",
-      "version_before": "1.3.6",
-      "priority": "high",
-      "cves": ["CVE-2015-3306", "CVE-2011-4130"],
-      "description": "ProFTPD before 1.3.6 is vulnerable to remote code execution via the mod_copy module (CVE-2015-3306).",
-      "suggested_commands": [
-        "nmap --script ftp-anon -p {port} {host}",
-        "nmap --script ftp-vuln-cve2010-4221 -p {port} {host}"
-      ],
-      "metasploit_modules": [
-        "exploit/unix/ftp/proftpd_modcopy_exec"
-      ]
-    },
+  "afp": [
     {
       "product": null,
-      "version_match": null,
-      "priority": "medium",
-      "cves": [],
-      "description": "FTP transmits credentials in plaintext. Check for anonymous login and writeable directories.",
-      "suggested_commands": [
-        "nmap --script ftp-anon -p {port} {host}",
-        "ftp {host} {port}"
-      ],
-      "metasploit_modules": [
-        "auxiliary/scanner/ftp/anonymous",
-        "auxiliary/scanner/ftp/ftp_login"
-      ]
-    }
-  ],
-  "http": [
-    {
-      "product": "apache",
-      "version_match": "2.4.49",
-      "priority": "critical",
-      "cves": ["CVE-2021-41773", "CVE-2021-42013"],
-      "description": "Apache 2.4.49 has a path traversal and remote code execution vulnerability. Widely exploited in the wild.",
-      "suggested_commands": [
-        "curl -s --path-as-is http://{host}:{port}/cgi-bin/.%2e/%2e%2e/%2e%2e/etc/passwd",
-        "curl -s --path-as-is http://{host}:{port}/icons/.%2e/%2e%2e/%2e%2e/etc/passwd"
-      ],
-      "metasploit_modules": [
-        "exploit/multi/http/apache_normalize_path_rce"
-      ]
-    },
-    {
-      "product": "apache",
-      "version_before": "2.4.51",
+      "version_match": "0.3",
+      "version_before": null,
       "priority": "high",
-      "cves": ["CVE-2021-41773"],
-      "description": "Apache versions before 2.4.51 may be vulnerable to path traversal. Check if this exact version is affected.",
-      "suggested_commands": [
-        "nmap --script http-shellshock -p {port} {host}",
-        "nikto -h http://{host}:{port}"
+      "cves": [
+        "CVE-2010-0533"
       ],
-      "metasploit_modules": []
-    },
-    {
-      "product": "iis",
-      "version_before": "10.0",
-      "priority": "medium",
-      "cves": ["CVE-2017-7269", "CVE-2015-1635"],
-      "description": "Older IIS versions have known vulnerabilities. IIS 6.0 is vulnerable to CVE-2017-7269 (buffer overflow RCE).",
+      "description": "Detects the Mac OS X AFP directory traversal vulnerability, CVE-2010-0533. This script attempts to iterate over all AFP shares on the remote host.",
       "suggested_commands": [
-        "nmap --script http-iis-webdav-vuln -p {port} {host}",
-        "nikto -h http://{host}:{port}"
-      ],
-      "metasploit_modules": [
-        "exploit/windows/iis/iis_webdav_scstoragepathfromurl"
-      ]
-    },
-    {
-      "product": "tp-link",
-      "version_match": null,
-      "priority": "high",
-      "cves": ["CVE-2023-1389", "CVE-2021-41459"],
-      "description": "TP-LINK admin interface detected. Default credentials are widely known (admin/admin). Multiple firmware CVEs exist.",
-      "suggested_commands": [
-        "curl -s http://{host}:{port}/",
-        "hydra -l admin -P /usr/share/wordlists/rockyou.txt http-get://{host}:{port}/",
-        "nmap --script http-default-accounts -p {port} {host}"
-      ],
-      "metasploit_modules": [
-        "auxiliary/scanner/http/tp_link_traversal"
-      ]
-    },
-    {
-      "product": null,
-      "version_match": null,
-      "priority": "low",
-      "cves": [],
-      "description": "HTTP service detected. Check for default credentials, exposed admin panels, and directory listing.",
-      "suggested_commands": [
-        "nikto -h http://{host}:{port}",
-        "gobuster dir -u http://{host}:{port} -w /usr/share/wordlists/dirb/common.txt",
-        "curl -I http://{host}:{port}"
+        "nmap --script afp-path-vuln -p 548 {host}"
       ],
       "metasploit_modules": []
     }
   ],
-  "upnp": [
+  "distcc": [
     {
-      "product": "portable sdk for upnp",
-      "version_before": "1.14.0",
+      "product": null,
+      "version_match": null,
+      "version_before": null,
       "priority": "high",
-      "cves": ["CVE-2016-8863", "CVE-2012-5958", "CVE-2012-5960"],
-      "description": "Portable SDK for UPnP devices before 1.14.0 has multiple buffer overflow vulnerabilities exploitable without authentication.",
-      "suggested_commands": [
-        "nmap -sV --script upnp-info -p {port} {host}",
-        "nmap --script broadcast-upnp-info"
+      "cves": [
+        "CVE-2004-2687"
       ],
-      "metasploit_modules": [
-        "auxiliary/scanner/upnp/ssdp_msearch"
-      ]
-    },
+      "description": "Detects and exploits a remote code execution vulnerability in the distributed compiler daemon distcc. The vulnerability was disclosed in 2002, but is still present in modern implementation due to poor configuration of the service.",
+      "suggested_commands": [
+        "nmap --script distcc-cve2004-2687 -p 3632 {host}"
+      ],
+      "metasploit_modules": []
+    }
+  ],
+  "docker": [
     {
       "product": null,
       "version_match": null,
-      "priority": "medium",
-      "cves": [],
-      "description": "UPnP service exposed. UPnP is designed for internal networks only and should not be accessible externally. Can be abused for port forwarding and SSRF.",
-      "suggested_commands": [
-        "nmap -sV --script upnp-info -p {port} {host}"
-      ],
-      "metasploit_modules": [
-        "auxiliary/scanner/upnp/ssdp_msearch"
-      ]
-    }
-  ],
-  "mysql": [
-    {
-      "product": null,
-      "version_before": "8.0",
-      "priority": "medium",
-      "cves": ["CVE-2016-6662", "CVE-2012-2122"],
-      "description": "MySQL exposed on the network. Check for remote root access, weak credentials, and outdated version CVEs.",
-      "suggested_commands": [
-        "nmap --script mysql-info,mysql-empty-password,mysql-databases -p {port} {host}",
-        "hydra -l root -P /usr/share/wordlists/rockyou.txt mysql://{host}:{port}"
-      ],
-      "metasploit_modules": [
-        "auxiliary/scanner/mysql/mysql_login",
-        "auxiliary/admin/mysql/mysql_enum"
-      ]
-    }
-  ],
-  "microsoft-ds": [
-    {
-      "product": null,
-      "version_match": null,
+      "version_before": null,
       "priority": "critical",
-      "cves": ["CVE-2017-0144", "CVE-2020-0796"],
-      "description": "SMB service detected. Check for EternalBlue (MS17-010) and SMBGhost (CVE-2020-0796). These are among the most exploited vulnerabilities ever.",
+      "cves": [],
+      "description": "Docker daemon API found exposed. Unauthenticated access allows full control over the host via privileged container creation and mounting the root filesystem.",
       "suggested_commands": [
-        "nmap --script smb-vuln-ms17-010 -p {port} {host}",
-        "nmap --script smb-vuln-cve-2020-0796 -p {port} {host}",
-        "nmap --script smb-security-mode -p {port} {host}"
+        "curl -s http://{host}:{port}/containers/json",
+        "docker -H tcp://{host}:{port} ps"
       ],
       "metasploit_modules": [
-        "exploit/windows/smb/ms17_010_eternalblue",
-        "auxiliary/scanner/smb/smb_ms17_010"
+        "exploit/linux/local/docker_daemon_privilege_escalation"
       ]
     }
   ],
@@ -241,6 +65,817 @@
       ]
     }
   ],
+  "ftp": [
+    {
+      "product": "vsftpd",
+      "version_match": "2.3.4",
+      "priority": "high",
+      "cves": [
+        "CVE-2011-2523"
+      ],
+      "description": "Tests for the presence of the vsFTPd 2.3.4 backdoor reported on 2011-07-04 (CVE-2011-2523). This script attempts to exploit the backdoor using the innocuous <code>id</code> command by default, but that can be changed with the <code>exploit.cmd</code> or <code>ftp-vsftpd-backdoor.cmd</code> script ar",
+      "suggested_commands": [
+        "nmap --script ftp-vsftpd-backdoor -p 21 {host}"
+      ],
+      "metasploit_modules": [
+        "exploit/unix/ftp/vsftpd_234_backdoor",
+        "exploits/unix/ftp/vsftpd_234_backdoor"
+      ]
+    },
+    {
+      "product": "proftpd",
+      "version_before": "1.3.6",
+      "priority": "high",
+      "cves": [
+        "CVE-2015-3306",
+        "CVE-2011-4130"
+      ],
+      "description": "ProFTPD before 1.3.6 is vulnerable to remote code execution via the mod_copy module (CVE-2015-3306).",
+      "suggested_commands": [
+        "nmap --script ftp-anon -p {port} {host}",
+        "nmap --script ftp-vuln-cve2010-4221 -p {port} {host}"
+      ],
+      "metasploit_modules": [
+        "exploit/unix/ftp/proftpd_modcopy_exec"
+      ]
+    },
+    {
+      "product": null,
+      "version_match": null,
+      "priority": "high",
+      "cves": [
+        "CVE-2010-1938"
+      ],
+      "description": "Checks if an FTPd is prone to CVE-2010-1938 (OPIE off-by-one stack overflow), a vulnerability discovered by Maksymilian Arciemowicz and Adam \"pi3\" Zabrocki. See the advisory at https://nmap.org/r/fbsd-sa-opie.",
+      "suggested_commands": [
+        "nmap --script ftp-libopie -p 21 {host}"
+      ],
+      "metasploit_modules": [
+        "auxiliary/scanner/ftp/anonymous",
+        "auxiliary/scanner/ftp/ftp_login"
+      ]
+    },
+    {
+      "product": "proftpd",
+      "version_match": null,
+      "version_before": null,
+      "priority": "medium",
+      "cves": [],
+      "description": "Tests for the presence of the ProFTPD 1.3.3c backdoor reported as BID 45150. This script attempts to exploit the backdoor using the innocuous <code>id</code> command by default, but that can be changed with the <code>ftp-proftpd-backdoor.cmd</code> script argument.",
+      "suggested_commands": [
+        "nmap --script ftp-proftpd-backdoor -p 21 {host}"
+      ],
+      "metasploit_modules": []
+    },
+    {
+      "product": "proftpd",
+      "version_match": "1.3.",
+      "version_before": null,
+      "priority": "high",
+      "cves": [
+        "CVE-2010-4221"
+      ],
+      "description": "Checks for a stack-based buffer overflow in the ProFTPD server, version between 1.3.2rc3 and 1.3.3b. By sending a large number of TELNET_IAC escape sequence, the proftpd process miscalculates the buffer length, and a remote attacker will be able to corrupt the stack and execute arbitrary code within",
+      "suggested_commands": [
+        "nmap --script ftp-vuln-cve2010-4221 -p 21 {host}"
+      ],
+      "metasploit_modules": []
+    }
+  ],
+  "http": [
+    {
+      "product": "apache",
+      "version_match": "2.4.49",
+      "priority": "critical",
+      "cves": [
+        "CVE-2021-41773",
+        "CVE-2021-42013"
+      ],
+      "description": "Apache 2.4.49 has a path traversal and remote code execution vulnerability. Widely exploited in the wild.",
+      "suggested_commands": [
+        "curl -s --path-as-is http://{host}:{port}/cgi-bin/.%2e/%2e%2e/%2e%2e/etc/passwd",
+        "curl -s --path-as-is http://{host}:{port}/icons/.%2e/%2e%2e/%2e%2e/etc/passwd"
+      ],
+      "metasploit_modules": [
+        "exploit/multi/http/apache_normalize_path_rce"
+      ]
+    },
+    {
+      "product": "apache",
+      "version_before": "2.4.51",
+      "priority": "high",
+      "cves": [
+        "CVE-2021-41773"
+      ],
+      "description": "Apache versions before 2.4.51 may be vulnerable to path traversal. Check if this exact version is affected.",
+      "suggested_commands": [
+        "nmap --script http-shellshock -p {port} {host}",
+        "nikto -h http://{host}:{port}"
+      ],
+      "metasploit_modules": []
+    },
+    {
+      "product": "iis",
+      "version_before": "10.0",
+      "priority": "medium",
+      "cves": [
+        "CVE-2017-7269",
+        "CVE-2015-1635"
+      ],
+      "description": "Older IIS versions have known vulnerabilities. IIS 6.0 is vulnerable to CVE-2017-7269 (buffer overflow RCE).",
+      "suggested_commands": [
+        "nmap --script http-iis-webdav-vuln -p {port} {host}",
+        "nikto -h http://{host}:{port}"
+      ],
+      "metasploit_modules": [
+        "exploit/windows/iis/iis_webdav_scstoragepathfromurl"
+      ]
+    },
+    {
+      "product": "tp-link",
+      "version_match": null,
+      "priority": "high",
+      "cves": [
+        "CVE-2023-1389",
+        "CVE-2021-41459"
+      ],
+      "description": "TP-LINK admin interface detected. Default credentials are widely known (admin/admin). Multiple firmware CVEs exist.",
+      "suggested_commands": [
+        "curl -s http://{host}:{port}/",
+        "hydra -l admin -P /usr/share/wordlists/rockyou.txt http-get://{host}:{port}/",
+        "nmap --script http-default-accounts -p {port} {host}"
+      ],
+      "metasploit_modules": [
+        "auxiliary/scanner/http/tp_link_traversal"
+      ]
+    },
+    {
+      "product": null,
+      "version_match": null,
+      "priority": "medium",
+      "cves": [
+        "CVE-2010-2333"
+      ],
+      "description": "Crawls a web server and attempts to find PHP files vulnerable to reflected cross site scripting via the variable <code>$_SERVER[\"PHP_SELF\"]</code>. This script crawls the webserver to create a list of PHP files and then sends an attack vector/probe to identify PHP_SELF cross site scripting vulnerabi",
+      "suggested_commands": [
+        "nmap --script=http-phpself-xss -p80 <{host}>",
+        "nmap --script http-phpself-xss -p 80,443,8080 {host}"
+      ],
+      "metasploit_modules": []
+    },
+    {
+      "product": "apache",
+      "version_match": "1.4.1",
+      "version_before": null,
+      "priority": "medium",
+      "cves": [],
+      "description": "Exploits a directory traversal vulnerability in Apache Axis2 version 1.4.1 by sending a specially crafted request to the parameter <code>xsd</code> (BID 40343). By default it will try to retrieve the configuration file of the Axis2 service <code>'/conf/axis2.xml'</code> using the path <code>'/axis2/",
+      "suggested_commands": [
+        "nmap --script http-axis2-dir-traversal -p 80,443,8080 {host}"
+      ],
+      "metasploit_modules": []
+    },
+    {
+      "product": "iis",
+      "version_match": null,
+      "version_before": null,
+      "priority": "medium",
+      "cves": [],
+      "description": "Determines if the web server leaks its internal IP address when sending an HTTP/1.0 request without a Host header. Some misconfigured web servers leak their internal IP address in the response headers when returning a redirect response.",
+      "suggested_commands": [
+        "nmap --script http-internal-ip-disclosure -p 80,443,8080 {host}"
+      ],
+      "metasploit_modules": []
+    },
+    {
+      "product": "drupal",
+      "version_match": null,
+      "version_before": null,
+      "priority": "medium",
+      "cves": [],
+      "description": "Checks for a Git repository found in a website's document root /.git/<something>) and retrieves as much repo information as possible, including language/framework, remotes, last commit message, and repository description.",
+      "suggested_commands": [
+        "nmap --script http-git -p 80,443,8080 {host}"
+      ],
+      "metasploit_modules": []
+    },
+    {
+      "product": "huawei",
+      "version_match": null,
+      "version_before": null,
+      "priority": "medium",
+      "cves": [],
+      "description": "Detects Huawei modems models HG530x, HG520x, HG510x (and possibly others...) vulnerable to a remote credential and information disclosure vulnerability. It also extracts the PPPoE credentials and other interesting configuration values.",
+      "suggested_commands": [
+        "nmap --script http-huawei-hg5xx-vuln -p 80,443,8080 {host}"
+      ],
+      "metasploit_modules": []
+    },
+    {
+      "product": "apache",
+      "version_match": null,
+      "version_before": null,
+      "priority": "high",
+      "cves": [
+        "CVE-2011-3192"
+      ],
+      "description": "Detects a denial of service vulnerability in the way the Apache web server handles requests for multiple overlapping/simple ranges of a page. References: * https://seclists.org/fulldisclosure/2011/Aug/175 * https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2011-3192 * https://www.tenable.com/plugin",
+      "suggested_commands": [
+        "nmap --script http-vuln-cve2011-3192 -p 80,443,8080 {host}"
+      ],
+      "metasploit_modules": []
+    },
+    {
+      "product": "phpmyadmin",
+      "version_match": null,
+      "version_before": null,
+      "priority": "high",
+      "cves": [
+        "CVE-2005-3299"
+      ],
+      "description": "Exploits a directory traversal vulnerability in phpMyAdmin 2.6.4-pl1 (and possibly other versions) to retrieve remote files on the web server. Reference: * http://www.exploit-db.com/exploits/1244/",
+      "suggested_commands": [
+        "nmap --script http-phpmyadmin-dir-traversal -p 80,443,8080 {host}"
+      ],
+      "metasploit_modules": []
+    },
+    {
+      "product": "vmware",
+      "version_match": null,
+      "version_before": null,
+      "priority": "high",
+      "cves": [
+        "CVE-2009-3733"
+      ],
+      "description": "Checks for a path-traversal vulnerability in VMWare ESX, ESXi, and Server (CVE-2009-3733). The vulnerability was originally released by Justin Morehouse and Tony Flick, who presented at Shmoocon 2010 (http://fyrmassociates.com/tools.html).",
+      "suggested_commands": [
+        "nmap --script http-vmware-path-vuln -p 80,443,8080 {host}"
+      ],
+      "metasploit_modules": []
+    },
+    {
+      "product": "jboss",
+      "version_match": null,
+      "version_before": null,
+      "priority": "high",
+      "cves": [
+        "CVE-2010-0738"
+      ],
+      "description": "Tests whether a JBoss target is vulnerable to jmx console authentication bypass (CVE-2010-0738). It works by checking if the target paths require authentication or redirect to a login page that could be bypassed via a HEAD request.",
+      "suggested_commands": [
+        "nmap --script=http-vuln-cve2010-0738 --script-args 'http-vuln-cve2010-0738.paths={/path1/,/path2/}' <{host}>",
+        "nmap --script http-vuln-cve2010-0738 -p 80,443,8080 {host}"
+      ],
+      "metasploit_modules": []
+    },
+    {
+      "product": "openssl",
+      "version_match": null,
+      "version_before": null,
+      "priority": "high",
+      "cves": [
+        "CVE-2010-2861"
+      ],
+      "description": "Executes a directory traversal attack against a ColdFusion server and tries to grab the password hash for the administrator user. It then uses the salt value (hidden in the web page) to create the SHA1 HMAC hash that the web server needs for authentication as admin.",
+      "suggested_commands": [
+        "nmap --script http-vuln-cve2010-2861 -p 80,443,8080 {host}"
+      ],
+      "metasploit_modules": []
+    },
+    {
+      "product": null,
+      "version_match": null,
+      "version_before": "2.3.15",
+      "priority": "high",
+      "cves": [
+        "CVE-2013-0156"
+      ],
+      "description": "Detects Ruby on Rails servers vulnerable to object injection, remote command executions and denial of service attacks. (CVE-2013-0156) All Ruby on Rails versions before 2.3.15, 3.0.x before 3.0.19, 3.1.x before 3.1.10, and 3.2.x before 3.2.11 are vulnerable.",
+      "suggested_commands": [
+        "nmap -sV --script http-vuln-cve2013-0156 <{host}>",
+        "nmap --script http-vuln-cve2013-0156 -p 80,443,8080 {host}"
+      ],
+      "metasploit_modules": []
+    },
+    {
+      "product": "cisco",
+      "version_match": null,
+      "version_before": null,
+      "priority": "medium",
+      "cves": [
+        "CVE-2014-2126",
+        "CVE-2014-2127",
+        "CVE-2014-2128"
+      ],
+      "description": "Detects whether the Cisco ASA appliance is vulnerable to the Cisco ASA SSL VPN Authentication Bypass Vulnerability (CVE-2014-2128).",
+      "suggested_commands": [
+        "nmap -p 443 --script http-vuln-cve2014-2128 <{host}>",
+        "nmap --script http-vuln-cve2014-2128 -p 80,443,8080 {host}"
+      ],
+      "metasploit_modules": []
+    },
+    {
+      "product": "drupal",
+      "version_match": null,
+      "version_before": "7.32",
+      "priority": "high",
+      "cves": [
+        "CVE-2014-3704"
+      ],
+      "description": "Exploits CVE-2014-3704 also known as 'Drupageddon' in Drupal. Versions < 7.32 of Drupal core are known to be affected.",
+      "suggested_commands": [
+        "nmap --script http-vuln-cve2014-3704 --script-args http-vuln-cve2014-3704.cmd=\"uname -a\",http-vuln-cve2014-3704.uri=\"/drupal\" <{host}>",
+        "nmap --script http-vuln-cve2014-3704 -p 80,443,8080 {host}"
+      ],
+      "metasploit_modules": []
+    },
+    {
+      "product": "wordpress",
+      "version_match": null,
+      "version_before": null,
+      "priority": "medium",
+      "cves": [
+        "CVE-2014-8877",
+        "CVE-2017-1001000"
+      ],
+      "description": "Enumerates usernames in Wordpress blog/CMS installations by exploiting an information disclosure vulnerability existing in versions 2.6, 3.1, 3.1.1, 3.1.3 and 3.2-beta2 and possibly others. Original advisory: * http://www.talsoft.com.ar/site/research/security-advisories/wordpress-user-id-and-user-na",
+      "suggested_commands": [
+        "nmap -p80 --script http-wordpress-users <{host}>",
+        "nmap --script http-wordpress-users -p 80,443,8080 {host}"
+      ],
+      "metasploit_modules": []
+    },
+    {
+      "product": "elasticsearch",
+      "version_match": null,
+      "version_before": null,
+      "priority": "high",
+      "cves": [
+        "CVE-2015-1427"
+      ],
+      "description": "This script attempts to detect a vulnerability, CVE-2015-1427, which allows attackers to leverage features of this API to gain unauthenticated remote code execution (RCE). Elasticsearch versions 1.3.0-1.3.7 and 1.4.0-1.4.2 have a vulnerability in the Groovy scripting engine.",
+      "suggested_commands": [
+        "nmap --script http-vuln-cve2015-1427 -p 80,443,8080 {host}"
+      ],
+      "metasploit_modules": []
+    },
+    {
+      "product": "joomla",
+      "version_match": "3.7",
+      "version_before": null,
+      "priority": "high",
+      "cves": [
+        "CVE-2017-8917"
+      ],
+      "description": "An SQL Injection vulnerability affecting Joomla! 3.7.x before 3.7.1 allows for unauthenticated users to execute arbitrary SQL commands.",
+      "suggested_commands": [
+        "nmap --script http-vuln-cve2017-8917 -p 80,443,8080 {host}"
+      ],
+      "metasploit_modules": []
+    }
+  ],
+  "microsoft-ds": [
+    {
+      "product": null,
+      "version_match": null,
+      "priority": "high",
+      "cves": [
+        "CVE-2017-0144",
+        "CVE-2020-0796",
+        "CVE-2006-2370",
+        "CVE-2007-1748"
+      ],
+      "description": "Detects Microsoft Windows systems with Dns Server RPC vulnerable to MS07-029. MS07-029 targets the <code>R_DnssrvQuery()</code> and <code>R_DnssrvQuery2()</code> RPC method which isa part of DNS Server RPC interface that serves as a RPC service for configuring and getting information from the DNS Se",
+      "suggested_commands": [
+        "nmap --script smb-vuln-ms07-029 -p 445 {host}"
+      ],
+      "metasploit_modules": [
+        "exploit/windows/smb/ms17_010_eternalblue",
+        "auxiliary/scanner/smb/smb_ms17_010"
+      ]
+    },
+    {
+      "product": "samba",
+      "version_match": null,
+      "version_before": null,
+      "priority": "high",
+      "cves": [
+        "CVE-2012-1182"
+      ],
+      "description": "Checks if target machines are vulnerable to the Samba heap overflow vulnerability CVE-2012-1182. Samba versions 3.6.3 and all versions previous to this are affected by a vulnerability that allows remote code execution as the \"root\" user from an anonymous connection.",
+      "suggested_commands": [
+        "nmap --script=samba-vuln-cve-2012-1182  -p 139 <{host}>",
+        "nmap --script samba-vuln-cve-2012-1182 -p 0 {host}"
+      ],
+      "metasploit_modules": []
+    },
+    {
+      "product": "netbios",
+      "version_match": null,
+      "version_before": null,
+      "priority": "high",
+      "cves": [
+        "CVE-2010-2550"
+      ],
+      "description": "Tests whether target machines are vulnerable to the ms10-054 SMB remote memory corruption vulnerability. The vulnerable machine will crash with BSOD.",
+      "suggested_commands": [
+        "nmap --script smb-vuln-ms10-054 -p 445 {host}"
+      ],
+      "metasploit_modules": []
+    },
+    {
+      "product": "samba",
+      "version_match": null,
+      "version_before": "4.5.10",
+      "priority": "high",
+      "cves": [
+        "CVE-2017-7494"
+      ],
+      "description": "Checks if target machines are vulnerable to the arbitrary shared library load vulnerability CVE-2017-7494. Unpatched versions of Samba from 3.5.0 to 4.4.13, and versions prior to 4.5.10 and 4.6.4 are affected by a vulnerability that allows remote code execution, allowing a malicious client to upload",
+      "suggested_commands": [
+        "nmap --script smb-vuln-cve-2017-7494 -p 445 {host}"
+      ],
+      "metasploit_modules": [
+        "exploits/linux/samba/is_known_pipename"
+      ]
+    },
+    {
+      "product": "cisco",
+      "version_match": null,
+      "version_before": null,
+      "priority": "high",
+      "cves": [
+        "CVE-2018-15442"
+      ],
+      "description": "Checks whether the WebExService is installed and allows us to run code. Note: Requires a user account (local or domain).",
+      "suggested_commands": [
+        "nmap --script smb-vuln-webexec -p 445 {host}"
+      ],
+      "metasploit_modules": []
+    },
+    {
+      "product": "microsoft",
+      "version_match": null,
+      "version_before": null,
+      "priority": "high",
+      "cves": [
+        "CVE-2017-0147"
+      ],
+      "description": "Attempts to detect missing patches in Windows systems by checking the uptime returned during the SMB2 protocol negotiation. SMB2 protocol negotiation response returns the system boot time pre-authentication.",
+      "suggested_commands": [
+        "nmap --script smb2-vuln-uptime -p 445 {host}"
+      ],
+      "metasploit_modules": []
+    },
+    {
+      "product": "samba",
+      "version_match": null,
+      "version_before": "4.13.17",
+      "priority": "critical",
+      "cves": [
+        "CVE-2021-44142"
+      ],
+      "description": "Samba vfs_fruit module allows out-of-bounds heap read and write via extended file attributes, leading to remote code execution as root.",
+      "suggested_commands": [
+        "smbclient -L //{host} -N -p {port}"
+      ],
+      "metasploit_modules": [
+        "exploit/linux/samba/is_known_pipename"
+      ]
+    },
+    {
+      "product": "samba",
+      "version_match": "3.0.20",
+      "version_before": null,
+      "priority": "critical",
+      "cves": [
+        "CVE-2007-2447"
+      ],
+      "description": "Samba 3.0.20 username map script vulnerability allows unauthenticated remote code execution via shell metacharacters in the username.",
+      "suggested_commands": [
+        "smbclient -L //{host} -N -p {port}"
+      ],
+      "metasploit_modules": [
+        "exploit/multi/samba/usermap_script"
+      ]
+    }
+  ],
+  "mongodb": [
+    {
+      "product": null,
+      "version_match": null,
+      "version_before": null,
+      "priority": "high",
+      "cves": [],
+      "description": "MongoDB server found running. Unauthenticated access can lead to complete database dump and modification. Ensure authentication is enabled.",
+      "suggested_commands": [
+        "mongo --host {host} --port {port}",
+        "nmap -p {port} --script mongodb-info {host}"
+      ],
+      "metasploit_modules": [
+        "auxiliary/scanner/mongodb/mongodb_login"
+      ]
+    }
+  ],
+  "mssql": [
+    {
+      "product": null,
+      "version_match": null,
+      "version_before": null,
+      "priority": "high",
+      "cves": [],
+      "description": "Microsoft SQL Server found running. Weak credentials (e.g., sa:sa) can lead to command execution via xp_cmdshell if enabled.",
+      "suggested_commands": [
+        "nmap -p {port} --script ms-sql-info,ms-sql-empty-password {host}"
+      ],
+      "metasploit_modules": [
+        "auxiliary/scanner/mssql/mssql_login",
+        "exploit/windows/mssql/mssql_payload"
+      ]
+    }
+  ],
+  "mysql": [
+    {
+      "product": null,
+      "version_before": "8.0",
+      "priority": "medium",
+      "cves": [
+        "CVE-2016-6662",
+        "CVE-2012-2122"
+      ],
+      "description": "MySQL exposed on the network. Check for remote root access, weak credentials, and outdated version CVEs.",
+      "suggested_commands": [
+        "nmap --script mysql-info,mysql-empty-password,mysql-databases -p {port} {host}",
+        "hydra -l root -P /usr/share/wordlists/rockyou.txt mysql://{host}:{port}"
+      ],
+      "metasploit_modules": [
+        "auxiliary/scanner/mysql/mysql_login",
+        "auxiliary/admin/mysql/mysql_enum"
+      ]
+    },
+    {
+      "product": "openssl",
+      "version_match": null,
+      "version_before": "5.1.61",
+      "priority": "high",
+      "cves": [
+        "CVE-2012-2122"
+      ],
+      "description": "Attempts to bypass authentication in MySQL and MariaDB servers by exploiting CVE2012-2122. If its vulnerable, it will also attempt to dump the MySQL usernames and password hashes.",
+      "suggested_commands": [
+        "nmap --script mysql-vuln-cve2012-2122 -p 3306 {host}"
+      ],
+      "metasploit_modules": []
+    }
+  ],
+  "postgresql": [
+    {
+      "product": null,
+      "version_match": null,
+      "version_before": null,
+      "priority": "medium",
+      "cves": [],
+      "description": "PostgreSQL database found running. Check for default credentials (postgres:postgres). Authenticated attackers can use COPY TO PROGRAM for code execution.",
+      "suggested_commands": [
+        "psql -h {host} -p {port} -U postgres"
+      ],
+      "metasploit_modules": [
+        "auxiliary/scanner/postgres/postgres_login",
+        "exploit/multi/postgres/postgres_copy_from_program_cmd_exec"
+      ]
+    }
+  ],
+  "rdp": [
+    {
+      "product": null,
+      "version_match": null,
+      "priority": "high",
+      "cves": [
+        "CVE-2019-0708",
+        "CVE-2012-0002"
+      ],
+      "description": "RDP exposed on the network. Check for BlueKeep (CVE-2019-0708) and brute force exposure.",
+      "suggested_commands": [
+        "nmap --script rdp-vuln-ms12-020 -p {port} {host}",
+        "nmap --script rdp-enum-encryption -p {port} {host}"
+      ],
+      "metasploit_modules": [
+        "exploit/windows/rdp/cve_2019_0708_bluekeep_rce",
+        "auxiliary/scanner/rdp/ms12_020_check"
+      ]
+    },
+    {
+      "product": null,
+      "version_match": "03",
+      "version_before": null,
+      "priority": "medium",
+      "cves": [
+        "CVE-2012-0152",
+        "CVE-2012-0002"
+      ],
+      "description": "Checks if a machine is vulnerable to MS12-020 RDP vulnerability. The Microsoft bulletin MS12-020 patches two vulnerabilities: CVE-2012-0152 which addresses a denial of service vulnerability inside Terminal Server, and CVE-2012-0002 which fixes a vulnerability in Remote Desktop Protocol.",
+      "suggested_commands": [
+        "nmap -sV --script=rdp-vuln-ms12-020 -p 3389 <{host}>",
+        "nmap --script rdp-vuln-ms12-020 -p 3389 {host}"
+      ],
+      "metasploit_modules": []
+    }
+  ],
+  "redis": [
+    {
+      "product": null,
+      "version_match": null,
+      "version_before": null,
+      "priority": "high",
+      "cves": [],
+      "description": "Redis server found running. If it is exposed without a password, it can lead to remote code execution (RCE) via SSH key writing or cron job manipulation.",
+      "suggested_commands": [
+        "redis-cli -h {host} -p {port} info",
+        "nmap -p {port} --script redis-info {host}"
+      ],
+      "metasploit_modules": [
+        "auxiliary/scanner/redis/redis_login",
+        "exploit/linux/redis/redis_replication_cmd_exec"
+      ]
+    }
+  ],
+  "smtp": [
+    {
+      "product": "exim",
+      "version_match": "4.69",
+      "version_before": null,
+      "priority": "high",
+      "cves": [
+        "CVE-2010-4344",
+        "CVE-2010-4345"
+      ],
+      "description": "Checks for and/or exploits a heap overflow within versions of Exim prior to version 4.69 (CVE-2010-4344) and a privilege escalation vulnerability in Exim 4.72 and prior (CVE-2010-4345). The heap overflow vulnerability allows remote attackers to execute arbitrary code with the privileges of the Exim ",
+      "suggested_commands": [
+        "nmap --script smtp-vuln-cve2010-4344 -p 25 {host}"
+      ],
+      "metasploit_modules": []
+    },
+    {
+      "product": "postfix",
+      "version_match": null,
+      "version_before": null,
+      "priority": "high",
+      "cves": [
+        "CVE-2011-1720"
+      ],
+      "description": "Checks for a memory corruption in the Postfix SMTP server when it uses Cyrus SASL library authentication mechanisms (CVE-2011-1720). This vulnerability can allow denial of service and possibly remote code execution.",
+      "suggested_commands": [
+        "nmap --script smtp-vuln-cve2011-1720 -p 25 {host}"
+      ],
+      "metasploit_modules": []
+    },
+    {
+      "product": "exim",
+      "version_match": "4.70",
+      "version_before": null,
+      "priority": "high",
+      "cves": [
+        "CVE-2011-1764"
+      ],
+      "description": "Checks for a format string vulnerability in the Exim SMTP server (version 4.70 through 4.75) with DomainKeys Identified Mail (DKIM) support (CVE-2011-1764). The DKIM logging mechanism did not use format string specifiers when logging some parts of the DKIM-Signature header field.",
+      "suggested_commands": [
+        "nmap --script smtp-vuln-cve2011-1764 -p 25 {host}"
+      ],
+      "metasploit_modules": []
+    }
+  ],
+  "ssh": [
+    {
+      "product": "dropbear",
+      "version_before": "2020.80",
+      "priority": "high",
+      "cves": [
+        "CVE-2018-15599",
+        "CVE-2017-9078",
+        "CVE-2016-7406"
+      ],
+      "description": "Dropbear SSH older than 2020.80 has multiple known vulnerabilities including use-after-free and buffer overflow issues.",
+      "suggested_commands": [
+        "nmap -sV --script ssh-auth-methods -p {port} {host}",
+        "nmap -sV --script ssh2-enum-algos -p {port} {host}",
+        "hydra -l root -P /usr/share/wordlists/rockyou.txt ssh://{host}:{port}"
+      ],
+      "metasploit_modules": [
+        "auxiliary/scanner/ssh/ssh_login",
+        "auxiliary/scanner/ssh/ssh_enumusers"
+      ]
+    },
+    {
+      "product": "openssh",
+      "version_before": "8.0",
+      "priority": "medium",
+      "cves": [
+        "CVE-2019-6111",
+        "CVE-2018-15473"
+      ],
+      "description": "OpenSSH versions before 8.0 are vulnerable to user enumeration (CVE-2018-15473) and other issues.",
+      "suggested_commands": [
+        "nmap -sV --script ssh-auth-methods -p {port} {host}",
+        "ssh -v {host} -p {port}"
+      ],
+      "metasploit_modules": [
+        "auxiliary/scanner/ssh/ssh_enumusers"
+      ]
+    },
+    {
+      "product": "openssh",
+      "version_before": "7.0",
+      "priority": "high",
+      "cves": [
+        "CVE-2016-0777",
+        "CVE-2016-0778",
+        "CVE-2015-5600"
+      ],
+      "description": "OpenSSH before 7.0 has critical vulnerabilities including roaming feature memory disclosure (CVE-2016-0777).",
+      "suggested_commands": [
+        "nmap -sV --script ssh-auth-methods -p {port} {host}",
+        "ssh -v {host} -p {port}"
+      ],
+      "metasploit_modules": [
+        "auxiliary/scanner/ssh/ssh_login"
+      ]
+    }
+  ],
+  "ssl": [
+    {
+      "product": "openssl",
+      "version_match": null,
+      "version_before": "0000000000000422",
+      "priority": "high",
+      "cves": [
+        "CVE-2017-15361"
+      ],
+      "description": "Detects RSA keys vulnerable to Return Of Coppersmith Attack (ROCA) factorization. SSH hostkeys and SSL/TLS certificates are checked.",
+      "suggested_commands": [
+        "nmap -p 22,443 --script rsa-vuln-roca <{host}>",
+        "nmap --script rsa-vuln-roca -p 0 {host}"
+      ],
+      "metasploit_modules": []
+    },
+    {
+      "product": "openssl",
+      "version_match": null,
+      "version_before": null,
+      "priority": "high",
+      "cves": [
+        "CVE-2014-0224"
+      ],
+      "description": "Detects whether a server is vulnerable to the SSL/TLS \"CCS Injection\" vulnerability (CVE-2014-0224), first discovered by Masashi Kikuchi. The script is based on the ccsinjection.c code authored by Ramon de C Valle (https://gist.github.com/rcvalle/71f4b027d61a78c42607) In order to exploit the vulnera",
+      "suggested_commands": [
+        "nmap -p 443 --script ssl-ccs-injection <{host}>",
+        "nmap --script ssl-ccs-injection -p 443 {host}"
+      ],
+      "metasploit_modules": []
+    },
+    {
+      "product": null,
+      "version_match": null,
+      "version_before": null,
+      "priority": "medium",
+      "cves": [],
+      "description": "Reports any private (RFC1918) IPv4 addresses found in the various fields of an SSL service's certificate. These will only be reported if the target address itself is not private.",
+      "suggested_commands": [
+        "nmap -p 443 --script ssl-cert-intaddr <{host}>",
+        "nmap --script ssl-cert-intaddr -p 443 {host}"
+      ],
+      "metasploit_modules": []
+    },
+    {
+      "product": "nginx",
+      "version_match": null,
+      "version_before": null,
+      "priority": "high",
+      "cves": [
+        "CVE-2015-4000"
+      ],
+      "description": "Weak ephemeral Diffie-Hellman parameter detection for SSL/TLS services. This script simulates SSL/TLS handshakes using ciphersuites that have ephemeral Diffie-Hellman as the key exchange algorithm.",
+      "suggested_commands": [
+        "nmap --script ssl-dh-params <{host}>",
+        "nmap --script ssl-dh-params -p 443 {host}"
+      ],
+      "metasploit_modules": []
+    },
+    {
+      "product": "iis",
+      "version_match": null,
+      "version_before": null,
+      "priority": "high",
+      "cves": [
+        "CVE-2016-9244"
+      ],
+      "description": "Detects whether a server is vulnerable to the F5 Ticketbleed bug (CVE-2016-9244). For additional information: * https://filippo.io/Ticketbleed/ * https://blog.filippo.io/finding-ticketbleed/ * https://support.f5.com/csp/article/K05121675",
+      "suggested_commands": [
+        "nmap -p 443 --script tls-ticketbleed <{host}>",
+        "nmap --script tls-ticketbleed -p 0 {host}"
+      ],
+      "metasploit_modules": []
+    }
+  ],
   "telnet": [
     {
       "product": null,
@@ -258,20 +893,157 @@
       ]
     }
   ],
-  "rdp": [
+  "tomcat": [
     {
       "product": null,
       "version_match": null,
+      "version_before": null,
       "priority": "high",
-      "cves": ["CVE-2019-0708", "CVE-2012-0002"],
-      "description": "RDP exposed on the network. Check for BlueKeep (CVE-2019-0708) and brute force exposure.",
+      "cves": [],
+      "description": "Apache Tomcat server found running. Check for default credentials (tomcat:tomcat) on the manager application which can allow WAR file deployment for RCE.",
       "suggested_commands": [
-        "nmap --script rdp-vuln-ms12-020 -p {port} {host}",
-        "nmap --script rdp-enum-encryption -p {port} {host}"
+        "nmap -p {port} --script http-tomcat-mgr-enum {host}"
       ],
       "metasploit_modules": [
-        "exploit/windows/rdp/cve_2019_0708_bluekeep_rce",
-        "auxiliary/scanner/rdp/ms12_020_check"
+        "exploit/multi/http/tomcat_mgr_upload",
+        "auxiliary/scanner/http/tomcat_mgr_login"
+      ]
+    }
+  ],
+  "unknown": [
+    {
+      "product": null,
+      "version_match": null,
+      "version_before": null,
+      "priority": "high",
+      "cves": [
+        "CVE-2011-1002"
+      ],
+      "description": "Attempts to discover hosts in the local network using the DNS Service Discovery protocol and sends a NULL UDP packet to each host to test if it is vulnerable to the Avahi NULL UDP packet denial of service (CVE-2011-1002). The <code>broadcast-avahi-dos.wait</code> script argument specifies how many n",
+      "suggested_commands": [
+        "nmap --script broadcast-avahi-dos -p 0 {host}"
+      ],
+      "metasploit_modules": []
+    },
+    {
+      "product": null,
+      "version_match": "0.2",
+      "version_before": null,
+      "priority": "medium",
+      "cves": [],
+      "description": "Attempts to perform a dynamic DNS update without authentication. Either the <code>test</code> or both the <code>hostname</code> and <code>ip</code> script arguments are required.",
+      "suggested_commands": [
+        "nmap -sU -p 53 --script=dns-update --script-args=dns-update.hostname=foo.example.com,dns-update.ip={host} <{host}>",
+        "nmap --script dns-update -p 0 {host}"
+      ],
+      "metasploit_modules": []
+    },
+    {
+      "product": null,
+      "version_match": "5.",
+      "version_before": null,
+      "priority": "medium",
+      "cves": [],
+      "description": "Checks if an IRC server is backdoored by running a time-based command (ping) and checking how long it takes to respond. The <code>irc-unrealircd-backdoor.command</code> script argument can be used to run an arbitrary command on the remote system.",
+      "suggested_commands": [
+        "nmap --script irc-unrealircd-backdoor -p 0 {host}"
+      ],
+      "metasploit_modules": []
+    },
+    {
+      "product": null,
+      "version_match": "3.8",
+      "version_before": null,
+      "priority": "medium",
+      "cves": [],
+      "description": "Detects if naive signing is enabled on a Puppet server. This enables attackers to create any Certificate Signing Request and have it signed, allowing them to impersonate as a puppet agent.",
+      "suggested_commands": [
+        "nmap --script puppet-naivesigning -p 0 {host}"
+      ],
+      "metasploit_modules": []
+    },
+    {
+      "product": "oracle",
+      "version_match": null,
+      "version_before": null,
+      "priority": "medium",
+      "cves": [],
+      "description": "Tests whether Java rmiregistry allows class loading. The default configuration of rmiregistry allows loading classes from remote URLs, which can lead to remote code execution.",
+      "suggested_commands": [
+        "nmap --script=rmi-vuln-classloader -p 1099 <{host}>",
+        "nmap --script rmi-vuln-classloader -p 0 {host}"
+      ],
+      "metasploit_modules": [
+        "exploits/multi/misc/java_rmi_server"
+      ]
+    }
+  ],
+  "upnp": [
+    {
+      "product": "portable sdk for upnp",
+      "version_before": "1.14.0",
+      "priority": "high",
+      "cves": [
+        "CVE-2016-8863",
+        "CVE-2012-5958",
+        "CVE-2012-5960"
+      ],
+      "description": "Portable SDK for UPnP devices before 1.14.0 has multiple buffer overflow vulnerabilities exploitable without authentication.",
+      "suggested_commands": [
+        "nmap -sV --script upnp-info -p {port} {host}",
+        "nmap -sV --script upnp-info -p {port} {host}"
+      ],
+      "metasploit_modules": [
+        "auxiliary/scanner/upnp/ssdp_msearch"
+      ]
+    },
+    {
+      "product": null,
+      "version_match": null,
+      "priority": "medium",
+      "cves": [],
+      "description": "UPnP service exposed. UPnP is designed for internal networks only and should not be accessible externally. Can be abused for port forwarding and SSRF.",
+      "suggested_commands": [
+        "nmap -sV --script upnp-info -p {port} {host}"
+      ],
+      "metasploit_modules": [
+        "auxiliary/scanner/upnp/ssdp_msearch"
+      ]
+    }
+  ],
+  "vnc": [
+    {
+      "product": "cisco",
+      "version_match": null,
+      "version_before": null,
+      "priority": "high",
+      "cves": [
+        "CVE-2006-2369"
+      ],
+      "description": "Checks if a VNC server is vulnerable to the RealVNC authentication bypass (CVE-2006-2369).",
+      "suggested_commands": [
+        "nmap --script realvnc-auth-bypass -p 0 {host}"
+      ],
+      "metasploit_modules": []
+    }
+  ],
+  "weblogic": [
+    {
+      "product": null,
+      "version_match": null,
+      "version_before": null,
+      "priority": "critical",
+      "cves": [
+        "CVE-2020-14882",
+        "CVE-2017-10271"
+      ],
+      "description": "Oracle WebLogic server found running. Historically affected by numerous critical RCE vulnerabilities via deserialization and console bypass.",
+      "suggested_commands": [
+        "nmap -p {port} --script weblogic-t3-info {host}"
+      ],
+      "metasploit_modules": [
+        "exploit/multi/misc/weblogic_deserialize_asyncresponseservice",
+        "exploit/windows/misc/weblogic_xmlentity_rce"
       ]
     }
   ]

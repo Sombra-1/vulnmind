@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<nmaprun scanner="nmap" args="nmap -sV -sC -oX sample_nmap.xml 192.168.1.10" start="1700000000" version="7.94" xmloutputversion="1.05">
+  <host starttime="1700000001" endtime="1700000060">
+    <status state="up" reason="echo-reply"/>
+    <address addr="192.168.1.10" addrtype="ipv4"/>
+    <hostnames>
+      <hostname name="target.local" type="PTR"/>
+    </hostnames>
+    <ports>
+      <port protocol="tcp" portid="21">
+        <state state="open" reason="syn-ack"/>
+        <service name="ftp" product="vsftpd" version="2.3.4"/>
+        <script id="ftp-vsftpd-backdoor" output="VULNERABLE:&#xa;  vsFTPd version 2.3.4 backdoor&#xa;  State: VULNERABLE (Exploitable)&#xa;  IDs: CVE:CVE-2011-2523 BID:48539&#xa;  Disclosure date: 2011-07-04&#xa;  References:&#xa;    https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2011-2523"/>
+      </port>
+      <port protocol="tcp" portid="22">
+        <state state="open" reason="syn-ack"/>
+        <service name="ssh" product="OpenSSH" version="7.2p2 Ubuntu 4ubuntu2.8"/>
+      </port>
+      <port protocol="tcp" portid="80">
+        <state state="open" reason="syn-ack"/>
+        <service name="http" product="Apache httpd" version="2.4.49"/>
+        <script id="http-vuln-cve2021-41773" output="VULNERABLE:&#xa;  Path traversal and remote code execution in Apache HTTP Server 2.4.49&#xa;  State: VULNERABLE (Exploitable)&#xa;  IDs: CVE:CVE-2021-41773&#xa;  Risk factor: High  CVSS: 7.5&#xa;  Description: A flaw was found in Apache HTTP Server 2.4.49.&#xa;               An attacker could use a path traversal attack."/>
+        <script id="http-server-header" output="Apache/2.4.49 (Ubuntu)"/>
+      </port>
+      <port protocol="tcp" portid="445">
+        <state state="open" reason="syn-ack"/>
+        <service name="microsoft-ds" product="Windows 7"/>
+        <script id="smb-vuln-ms17-010" output="VULNERABLE:&#xa;  Remote Code Execution vulnerability in Microsoft SMBv1 servers (ms17-010)&#xa;  State: VULNERABLE&#xa;  IDs: CVE:CVE-2017-0144&#xa;  Risk factor: HIGH&#xa;  Description: The SMB server is vulnerable to EternalBlue&#xa;  Disclosure date: 2017-03-14"/>
+      </port>
+      <port protocol="tcp" portid="3306">
+        <state state="open" reason="syn-ack"/>
+        <service name="mysql" product="MySQL" version="5.7.32"/>
+      </port>
+    </ports>
+  </host>
+</nmaprun>

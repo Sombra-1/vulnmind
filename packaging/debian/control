@@ -1,0 +1,13 @@
+Source: vulnmind
+Section: utils
+Priority: optional
+Maintainer: VulnMind <maintainer@example.com>
+Build-Depends: debhelper (>= 11), python3, python3-setuptools
+Standards-Version: 4.1.4
+
+Package: vulnmind
+Architecture: all
+Depends: ${python3:Depends}, ${misc:Depends}, python3-click, python3-rich, python3-requests, python3-reportlab
+Description: Security scan analyzer for pentesters
+ CLI security scan analyzer for Linux. Takes Nmap/Nikto output and
+ enriches it with offline CVE matching and suggested exploit commands.

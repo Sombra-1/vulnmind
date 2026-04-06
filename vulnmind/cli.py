@@ -4,10 +4,10 @@ cli.py — Entry point for VulnMind.
 Command structure:
   vulnmind analyze <files> [--enrich] [--report pdf]
   vulnmind config set-key <api-key>
-  vulnmind config set-license <license-key>
   vulnmind config show
 """
 
+import random
 import sys
 from pathlib import Path
 
@@ -20,14 +20,106 @@ from vulnmind.config import Config
 
 console = Console()
 
+# ---------------------------------------------------------------------------
+# Banner — random on every run
+# ---------------------------------------------------------------------------
+
+_BANNERS = [
+    r"""
+ __   __      _      __  __  _             _
+ \ \ / /     | |    |  \/  |(_)           | |
+  \ V / _   _| |_ __| \  / | _ _ __   __| |
+   > < | | | | | '_ \ |\/| || | '_ \ / _` |
+  / . \| |_| | | | | | |  | || | | | | (_| |
+ /_/ \_\\__,_|_|_| |_|_|  |_||_|_| |_|\__,_|""",
+
+    r"""
+ ___   ___  ________  ___       ________
+|\  \ /  /||\   ___ \|\  \     |\   ___  \
+\ \  \\  / /\ \  \_|\ \ \  \    \ \  \\ \  \
+ \ \  \\  /  \ \  \ \\ \ \  \    \ \  \\ \  \
+  \ \  \  \   \ \  \_\\ \ \  \____\ \  \\ \  \
+   \ \__\  \   \ \_______\ \_______\ \__\\ \__\
+    \|__|   \   \|_______|\|_______|\|__| \|__|
+ _____ _____ _   _ _____
+|     |     | | | |     \
+|     |     | | | |     |
+|_____|_____|\___/|_____/""",
+
+    r"""
+ _  _  _  _  _     _  _  _  _  _  _
+| || || || || |   | || || || || || |
+| || || || || |   | || || || || || |
+ \_  __/ \_  _/   |  \/  || |\ \/ /
+  | |    | |      | \  / || | \  /
+  | |    | |      | |\/| || | /  \
+  |_|    |_|      |_|  |_||_|/_/\_\
+
+ __   ___   _   _ _   _ __  __ ___ _  _ ____
+ \ \ / / | | | | | | | |  \/  |_ _| \| |  _ \
+  \ V /| |_| | | | | | | |\/| || || .` | | | |
+   \_/ |____/|_|_|_|_|_|_|  |_|___|_|\_|_|_|_|""",
+
+    r"""
+ __   __  __  __  __   _  _  _  _  _  __  _
+ \ \ / / / / / / / /  | \| || || || |/ _ \| |
+  \ V / / / / / / /   |  ` || || || | |_| | |__
+   \_/ /_/ /_/ /_/    |_|\_||___||_|\___/|____|""",
+
+    r"""
+        ██╗   ██╗██╗   ██╗██╗     ███╗   ██╗███╗   ███╗██╗███╗   ██╗██████╗
+        ██║   ██║██║   ██║██║     ████╗  ██║████╗ ████║██║████╗  ██║██╔══██╗
+        ██║   ██║██║   ██║██║     ██╔██╗ ██║██╔████╔██║██║██╔██╗ ██║██║  ██║
+        ╚██╗ ██╔╝██║   ██║██║     ██║╚██╗██║██║╚██╔╝██║██║██║╚██╗██║██║  ██║
+         ╚████╔╝ ╚██████╔╝███████╗██║ ╚████║██║ ╚═╝ ██║██║██║ ╚████║██████╔╝
+          ╚═══╝   ╚═════╝ ╚══════╝╚═╝  ╚═══╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═════╝""",
+
+    r"""
+    .~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~.
+   (   _                               )
+  (   ( )    V U L N M I N D    ( )    )
+  (    -   .-------------------.  -    )
+   (      /   scan  *  analyze  X     )
+    (    /   find  *  exploit    X   )
+     (  /___________________________X )
+      (   |  |  brain loaded  |  |   )
+       '-.|__|_______________|__|.-'
+              by  sombra-1
+    """,
+
+    """
+      _  _  _  _  _  _  _  _
+     ( )( )( )( )( )( )( )( )
+    (  VULN    *    MIND    SCAN )
+     ( CVE  .  FIND  .  EXPLOIT )
+      (_  _  brain.exe  _  _  _)
+        ( )( )( )( )( )( )( )
+              VULNMIND
+         [ knowledge loaded ]
+    """,
+]
+
+_COLORS = ["red", "cyan", "green", "magenta", "yellow", "blue"]
+
+
+def print_banner():
+    banner = random.choice(_BANNERS)
+    color  = random.choice(_COLORS)
+    console.print(f"[bold {color}]{banner}[/bold {color}]")
+    console.print(
+        f"  [dim]v{__version__}  by [bold]sombra-1[/bold]  "
+        f"Security Scan Analyzer[/dim]\n"
+    )
+
 
 # ---------------------------------------------------------------------------
 # Main CLI group
 # ---------------------------------------------------------------------------
 
-@click.group()
+@click.group(invoke_without_command=True)
 @click.version_option(version=__version__, prog_name="VulnMind")
-def cli():
+@click.pass_context
+def cli(ctx):
     """
     VulnMind — Security scan analyzer.
 
@@ -39,7 +131,9 @@ def cli():
       nmap -oX scan.xml 192.168.1.0/24
       vulnmind analyze scan.xml
     """
-    pass
+    if ctx.invoked_subcommand is None:
+        print_banner()
+        console.print(ctx.get_help())
 
 
 # ---------------------------------------------------------------------------
@@ -57,13 +151,13 @@ def cli():
     "--report",
     type=click.Choice(["pdf"]),
     default=None,
-    help="Generate a PDF report (Pro required).",
+    help="Generate a PDF report (requires --enrich).",
 )
 @click.option(
     "--enrich",
     is_flag=True,
     default=False,
-    help="Deep analysis: explanations, exploit commands, Metasploit modules.",
+    help="Deep analysis: AI explanations, exploit commands, Metasploit modules.",
 )
 def analyze(files: tuple, report: str | None, enrich: bool):
     """
@@ -82,6 +176,7 @@ def analyze(files: tuple, report: str | None, enrich: bool):
       vulnmind analyze scan.xml --enrich
       vulnmind analyze scan.xml --enrich --report pdf
     """
+    print_banner()
     cfg = Config.load()
 
     # Only check for API key if --enrich was requested
@@ -96,7 +191,6 @@ def analyze(files: tuple, report: str | None, enrich: bool):
         sys.exit(1)
 
     from vulnmind.parsers import load_files
-    from vulnmind.license import get_tier, partition_findings
     from vulnmind.matcher import match_findings
 
     # --- Parse ---
@@ -122,33 +216,29 @@ def analyze(files: tuple, report: str | None, enrich: bool):
         return
 
     # --- Knowledge base match (always runs, offline) ---
-    all_findings = match_findings(all_findings)
-
-    # --- License gate ---
-    tier = get_tier(cfg)
-    free_findings, locked_findings = partition_findings(all_findings, tier)
+    findings = match_findings(all_findings)
 
     # --- Deep enrich if requested ---
     if enrich:
         from vulnmind.ai import enrich_findings
-        free_findings = enrich_findings(free_findings, cfg)
+        findings = enrich_findings(findings, cfg)
 
     # --- Display ---
-    display_results(free_findings, locked_findings, tier, all_findings)
+    display_results(findings, enrich)
 
     # --- PDF ---
     if report == "pdf":
-        if tier != "pro":
+        if not enrich:
             console.print(Panel(
-                "PDF reports require a Pro license.\n\n"
-                "Run [bold]vulnmind config set-license <key>[/bold] to unlock.",
-                title="Pro Required",
+                "PDF reports require the [bold]--enrich[/bold] flag.\n\n"
+                "Run: [bold]vulnmind analyze scan.xml --enrich --report pdf[/bold]",
+                title="[bold yellow]--enrich Required[/bold yellow]",
                 border_style="yellow",
             ))
         else:
             from vulnmind.report import generate_pdf
             output_path = "vulnmind_report.pdf"
-            generate_pdf(all_findings, output_path)
+            generate_pdf(findings, output_path)
             console.print(f"\n[green]Report saved:[/green] {output_path}")
 
 
@@ -165,34 +255,16 @@ def config():
 @config.command("set-key")
 @click.argument("api_key")
 def config_set_key(api_key: str):
-    """Save your API key for deep analysis.
+    """Save your Groq API key for deep analysis.
 
     \b
+    Get a free key at: console.groq.com
     Usage: vulnmind config set-key gsk_...
     """
     cfg = Config.load()
     cfg.set("groq_api_key", api_key)
     cfg.save()
-    console.print(f"[green]Key saved.[/green] ({api_key[:8]}...)")
-
-
-@config.command("set-license")
-@click.argument("license_key")
-def config_set_license(license_key: str):
-    """Activate a Pro license key.
-
-    \b
-    Usage: vulnmind config set-license <key>
-    """
-    from vulnmind.license import validate_key
-    if not validate_key(license_key):
-        console.print("[red]Invalid license key.[/red] Check your key and try again.")
-        sys.exit(1)
-
-    cfg = Config.load()
-    cfg.set("license_key", license_key)
-    cfg.save()
-    console.print("[green]Pro license activated.[/green] All features unlocked.")
+    console.print(f"[green]API key saved.[/green] ({api_key[:8]}...)")
 
 
 @config.command("show")
@@ -211,17 +283,17 @@ def config_show():
 # Display
 # ---------------------------------------------------------------------------
 
-def display_results(free_findings, locked_findings, tier, all_findings):
-    total = len(all_findings)
-    critical = sum(1 for f in all_findings if f.priority == "critical")
-    high     = sum(1 for f in all_findings if f.priority == "high")
-    medium   = sum(1 for f in all_findings if f.priority == "medium")
-    low      = sum(1 for f in all_findings if f.priority == "low")
+def display_results(findings: list, enrich: bool):
+    total    = len(findings)
+    critical = sum(1 for f in findings if f.priority == "critical")
+    high     = sum(1 for f in findings if f.priority == "high")
+    medium   = sum(1 for f in findings if f.priority == "medium")
+    low      = sum(1 for f in findings if f.priority == "low")
     unknown  = total - critical - high - medium - low
 
-    tier_badge = "[green]PRO[/green]" if tier == "pro" else "[dim]FREE[/dim]"
+    mode_badge = "[green]ENRICH[/green]" if enrich else "[dim]BASIC[/dim]"
     header = (
-        f"[bold]VulnMind[/bold] {tier_badge}  ·  "
+        f"[bold]VulnMind[/bold] {mode_badge}  ·  "
         f"[red]{critical} critical[/red]  "
         f"[orange1]{high} high[/orange1]  "
         f"[yellow]{medium} medium[/yellow]  "
@@ -232,11 +304,17 @@ def display_results(free_findings, locked_findings, tier, all_findings):
     console.print(Panel(header, border_style="blue", padding=(0, 1)))
     console.print()
 
-    for finding in free_findings:
+    for finding in findings:
         display_finding_panel(finding)
 
-    if locked_findings:
-        display_locked_table(locked_findings)
+    if not enrich:
+        console.print(Panel(
+            "Add [bold]--enrich[/bold] for AI explanations, exploit commands, and PDF reports.\n\n"
+            "Requires a free Groq API key: [bold]console.groq.com[/bold]",
+            title="[bold dim]Tip: Deep Analysis Available[/bold dim]",
+            border_style="dim",
+            padding=(0, 2),
+        ))
 
 
 def display_finding_panel(finding):
@@ -292,44 +370,3 @@ def display_finding_panel(finding):
         padding=(1, 2),
     ))
     console.print()
-
-
-def display_locked_table(locked_findings):
-    from rich.table import Table
-    from rich import box
-
-    table = Table(
-        title="[dim]Additional Findings — Pro Required[/dim]",
-        box=box.SIMPLE,
-        show_header=True,
-        header_style="dim",
-        border_style="dim",
-    )
-    table.add_column("Host",     style="dim", no_wrap=True)
-    table.add_column("Port",     style="dim", no_wrap=True)
-    table.add_column("Finding",  style="dim")
-    table.add_column("Priority", style="dim", no_wrap=True)
-    table.add_column("",         no_wrap=True)
-
-    priority_colors = {"critical": "red", "high": "orange1", "medium": "yellow", "low": "green"}
-
-    for finding in locked_findings:
-        priority = finding.priority or "?"
-        p_color  = priority_colors.get(priority, "dim")
-        title    = finding.title[:45] + "…" if len(finding.title) > 45 else finding.title
-        table.add_row(
-            finding.host,
-            str(finding.port) if finding.port else "-",
-            f"[dim]{title}[/dim]",
-            f"[{p_color}]{priority}[/{p_color}]",
-            "[yellow bold][PRO][/yellow bold]",
-        )
-
-    console.print(table)
-    console.print(Panel(
-        "Unlock deep analysis, exploit commands, Metasploit modules, and PDF reports.\n\n"
-        "Run: [bold]vulnmind config set-license <your-key>[/bold]",
-        title="[bold yellow]Upgrade to Pro[/bold yellow]",
-        border_style="yellow",
-        padding=(0, 2),
-    ))

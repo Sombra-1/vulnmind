@@ -1,7 +1,7 @@
 """
 config.py — Persistent configuration for VulnMind.
 
-Stores: Groq API key, Pro license key, and preferences.
+Stores: Groq API key, Enrich license key, and preferences.
 Location: ~/.vulnmind/config.json
 
 Why ~/.vulnmind/ and not the project directory?
@@ -105,10 +105,6 @@ class Config:
     @property
     def groq_api_key(self) -> str | None:
         return self.get("groq_api_key")
-
-    @property
-    def license_key(self) -> str | None:
-        return self.get("license_key")
 
     @property
     def model(self) -> str:

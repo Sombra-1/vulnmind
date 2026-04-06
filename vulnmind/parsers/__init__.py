@@ -29,6 +29,7 @@ from pathlib import Path
 from vulnmind.parsers.base import ParseError
 from vulnmind.parsers.nmap import NmapParser
 from vulnmind.parsers.nikto import NiktoParser
+from vulnmind.parsers.metasploit import MetasploitParser
 
 # All registered parsers, in priority order.
 # If two parsers both claim can_parse() = True, the first one wins.
@@ -36,6 +37,7 @@ from vulnmind.parsers.nikto import NiktoParser
 REGISTERED_PARSERS = [
     NmapParser(),
     NiktoParser(),
+    MetasploitParser(),
 ]
 
 

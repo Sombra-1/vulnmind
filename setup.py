@@ -20,9 +20,9 @@ setup(
     name="vulnmind",
     version="0.1.0",
     description="Security scan analyzer for pentesters",
-    long_description=open("README.md").read() if __import__("os").path.exists("README.md") else "",
+    long_description=(open("README.md").read() if __import__("os").path.exists("README.md") else ""),
     long_description_content_type="text/markdown",
-    author="VulnMind",
+    author="sombra-1",
     python_requires=">=3.10",
 
     # find_packages() auto-discovers all directories with __init__.py

@@ -5,4 +5,4 @@
 click>=8.0         # CLI framework
 rich>=13.0         # Terminal formatting, tables, progress bars, panels
 requests>=2.28     # HTTP client for Groq API
-reportlab>=4.0     # PDF generation (Pro feature)
+reportlab>=4.0     # PDF generation (Enrich feature)

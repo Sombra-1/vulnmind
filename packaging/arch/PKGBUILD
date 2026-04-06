@@ -1,0 +1,21 @@
+pkgname=vulnmind
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="CLI security scan analyzer for Linux. Enriches Nmap/Nikto with offline matching."
+arch=('any')
+url="https://github.com/new/vulnmind" # Update when repo exists
+license=('MIT')
+depends=('python' 'python-click' 'python-rich' 'python-requests' 'python-reportlab')
+makedepends=('python-setuptools')
+source=("$pkgname-$pkgver.tar.gz::https://github.com/new/vulnmind/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+  cd "$srcdir/$pkgname-$pkgver"
+  python setup.py build
+}
+
+package() {
+  cd "$srcdir/$pkgname-$pkgver"
+  python setup.py install --root="$pkgdir" --optimize=1 --skip-build
+}
