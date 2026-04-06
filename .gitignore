@@ -41,8 +41,6 @@ vulnmind_report.*
 # Allow the bundled test samples
 !tests/sample_nmap.xml
 
-memory.md
-
 # Config (contains API keys)
 .vulnmind/
 
