@@ -201,6 +201,11 @@ def analyze(files: tuple, report: str | None, output: str, enrich: bool, deep: b
     if output_format == "text":
         print_banner()
 
+    # Start update check in background — overlaps with parsing, costs nothing
+    if output_format == "text":
+        from vulnmind.updater import start_check
+        start_check()
+
     cfg = Config.load()
 
     # Only check for API key if --enrich was requested
@@ -266,6 +271,13 @@ def analyze(files: tuple, report: str | None, output: str, enrich: bool, deep: b
         from vulnmind.report import generate_pdf
         generate_pdf(findings, output)
         console.print(f"\n[green]Report saved:[/green] {output}")
+
+    # --- Update notice (shown last, after everything else) ---
+    if output_format == "text":
+        from vulnmind.updater import get_notice
+        notice = get_notice()
+        if notice:
+            console.print(notice)
 
 
 # ---------------------------------------------------------------------------
