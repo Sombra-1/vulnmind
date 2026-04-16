@@ -170,7 +170,10 @@ Supported tools wanted: Metasploit, OpenVAS, Burp Suite, Nessus.
 
 ## Changelog
 
-### v0.2.1
+### v0.2.1 (+ post-release)
+- Update checker — notifies you when a new version is available (background thread, 24h cache, silent on no internet)
+
+### v0.2.1 features
 - 50+ service aliases and 40+ product patterns for better offline detection
 - Smarter version extraction — no longer misreads port numbers as version strings
 - Every finding now explains why its priority was assigned
