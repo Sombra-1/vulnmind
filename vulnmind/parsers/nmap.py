@@ -207,7 +207,7 @@ class NmapParser(BaseParser):
             if not is_vuln_script:
                 continue
 
-            cve_ids = CVE_PATTERN.findall(output)
+            cve_ids = sorted({c.upper() for c in CVE_PATTERN.findall(output)})
 
             title = f"{script_id} on {host}:{port}"
             description = f"NSE script '{script_id}' flagged {host}:{port}/{protocol}."
@@ -217,6 +217,17 @@ class NmapParser(BaseParser):
             finding_id = make_finding_id(host, port, script_id)
             if finding_id in seen_ids:
                 continue
+
+            # Attach service context (product, version) to evidence so the
+            # matcher sees them even if the NSE output doesn't mention them.
+            ev_parts = [f"Script: {script_id}"]
+            product = service_info.get("product", "")
+            version = service_info.get("version", "")
+            if product:
+                ev_parts.append(f"product: {product}")
+            if version:
+                ev_parts.append(f"version: {version}")
+            ev_parts.append(f"Output:\n{output[:800]}")
 
             findings.append(Finding(
                 id=finding_id,
@@ -229,7 +240,7 @@ class NmapParser(BaseParser):
                 service=service_info["name"],
                 title=title,
                 description=description,
-                raw_evidence=f"Script: {script_id}\nOutput:\n{output[:800]}",
+                raw_evidence="\n".join(ev_parts),
                 cve_ids=list(dict.fromkeys(cve_ids)),  # deduplicated, order-preserved
             ))
 
@@ -312,6 +323,7 @@ class NmapParser(BaseParser):
         current_port = None
         current_protocol = None
         current_service = None
+        current_service_version = ""  # full version string for context
         current_script_name = None
         script_buffer = []
 
@@ -337,7 +349,7 @@ class NmapParser(BaseParser):
                 return
 
             output = "\n".join(script_buffer).strip()
-            cve_ids = CVE_PATTERN.findall(output)
+            cve_ids = sorted({c.upper() for c in CVE_PATTERN.findall(output)})
             is_vuln = (
                 "vuln" in current_script_name.lower()
                 or "exploit" in current_script_name.lower()
@@ -348,6 +360,13 @@ class NmapParser(BaseParser):
                 finding_id = make_finding_id(current_host, current_port, current_script_name)
                 if finding_id not in seen_ids:
                     title = f"{current_script_name} on {current_host}:{current_port}"
+                    # Include service context in evidence so matcher can detect
+                    # the product (e.g. "Apache httpd 2.4.41") even when the
+                    # NSE output itself doesn't name the product.
+                    evidence_lines = [f"Script: {current_script_name}"]
+                    if current_service_version:
+                        evidence_lines.append(f"service: {current_service_version}")
+                    evidence_lines.append(output[:800])
                     findings.append(Finding(
                         id=finding_id,
                         source_tool="nmap",
@@ -359,7 +378,7 @@ class NmapParser(BaseParser):
                         service=current_service,
                         title=title,
                         description=f"NSE script '{current_script_name}' flagged this port.",
-                        raw_evidence=f"Script: {current_script_name}\n{output[:800]}",
+                        raw_evidence="\n".join(evidence_lines),
                         cve_ids=list(dict.fromkeys(cve_ids)),
                     ))
                     seen_ids.add(finding_id)
@@ -397,6 +416,7 @@ class NmapParser(BaseParser):
                 current_protocol = m.group(2)
                 current_service = m.group(4)
                 version = m.group(5).strip() if m.group(5) else ""
+                current_service_version = version
                 svc_display = f"{current_service} {version}".strip()
                 pending_open_ports.append((current_host, current_port, current_protocol, svc_display))
                 continue

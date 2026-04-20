@@ -108,8 +108,8 @@ class Config:
 
     @property
     def model(self) -> str:
-        """AI model to use. Default is Groq's fastest free-tier model."""
-        return self.get("model", "llama-3.1-8b-instant")
+        """AI model to use. Default is Groq's flagship free-tier model (70B)."""
+        return self.get("model", "llama-3.3-70b-versatile")
 
     # ------------------------------------------------------------------
     # Display helper (for `vulnmind config show`)

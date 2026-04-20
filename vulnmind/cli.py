@@ -170,7 +170,7 @@ def cli(ctx):
     "--deep",
     is_flag=True,
     default=False,
-    help="Send more scanner evidence to the AI for richer analysis (requires --enrich).",
+    help="Look up each CVE in NVD for official CVSS scores + more evidence to AI.",
 )
 @click.option(
     "--format", "output_format",
@@ -251,6 +251,10 @@ def analyze(files: tuple, report: str | None, output: str, enrich: bool, deep: b
     # --- Knowledge base match (always runs, offline) ---
     findings = match_findings(all_findings)
 
+    # --- NVD live CVE lookup (if --deep) ---
+    if deep:
+        findings = _nvd_enrich(findings, output_format)
+
     # --- AI enrich if requested ---
     if enrich:
         from vulnmind.ai import enrich_findings
@@ -260,7 +264,10 @@ def analyze(files: tuple, report: str | None, output: str, enrich: bool, deep: b
     if output_format == "json":
         import json as _json
         import dataclasses
-        console.print(_json.dumps([dataclasses.asdict(f) for f in findings], indent=2, default=str))
+        # Bypass Rich console — it word-wraps long strings and corrupts JSON
+        sys.stdout.write(_json.dumps(
+            [dataclasses.asdict(f) for f in findings], indent=2, default=str
+        ) + "\n")
         return
 
     # --- Display ---
@@ -278,6 +285,51 @@ def analyze(files: tuple, report: str | None, output: str, enrich: bool, deep: b
         notice = get_notice()
         if notice:
             console.print(notice)
+
+
+# ---------------------------------------------------------------------------
+# NVD enrichment helper
+# ---------------------------------------------------------------------------
+
+def _nvd_enrich(findings: list, output_format: str) -> list:
+    """Run NVD CVE lookups with a progress bar (if text output)."""
+    from vulnmind.nvd import enrich_with_nvd
+
+    # Count total unique CVEs first
+    unique_cves = set()
+    for f in findings:
+        for cve in (f.cve_ids or []):
+            unique_cves.add(cve.upper())
+
+    if not unique_cves:
+        return findings
+
+    if output_format == "json":
+        # No progress bar in JSON mode
+        return enrich_with_nvd(findings)
+
+    from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
+
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        TaskProgressColumn(),
+        console=console,
+        transient=True,
+    ) as progress:
+        task = progress.add_task(
+            f"Fetching CVE data from NVD ({len(unique_cves)} CVEs)...",
+            total=len(unique_cves),
+        )
+
+        def _cb(current, total, cve_id):
+            if cve_id:
+                progress.update(task, completed=current, description=f"NVD: {cve_id}")
+            else:
+                progress.update(task, completed=total)
+
+        return enrich_with_nvd(findings, progress_callback=_cb)
 
 
 # ---------------------------------------------------------------------------

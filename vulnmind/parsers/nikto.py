@@ -158,7 +158,7 @@ class NiktoParser(BaseParser):
             return None
 
         # Extract CVE IDs from anywhere in the line
-        cve_ids = CVE_PATTERN.findall(content)
+        cve_ids = sorted({c.upper() for c in CVE_PATTERN.findall(content)})
 
         # Extract OSVDB ID if present, then strip it from the content
         osvdb_match = OSVDB_PATTERN.match(content)

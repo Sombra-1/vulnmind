@@ -80,7 +80,9 @@
       "metasploit_modules": [
         "exploit/unix/ftp/vsftpd_234_backdoor",
         "exploits/unix/ftp/vsftpd_234_backdoor"
-      ]
+      ],
+      "priority_reason": "vsftpd 2.3.4 ships with a malicious backdoor that opens a root shell on port 6200 \u2014 unauthenticated remote code execution.",
+      "remediation": "Upgrade vsftpd to 2.3.5 or later. Verify the binary's SHA256 against the official vsftpd release hash. Restrict FTP to trusted networks or replace with SFTP."
     },
     {
       "product": "proftpd",
@@ -97,7 +99,9 @@
       ],
       "metasploit_modules": [
         "exploit/unix/ftp/proftpd_modcopy_exec"
-      ]
+      ],
+      "priority_reason": "ProFTPD has multiple historical RCEs in mod_copy / mod_sql. Always require authentication; internet-exposed instances are frequent attack targets.",
+      "remediation": "Upgrade to the latest ProFTPD (\u22651.3.7e). Disable mod_copy unless required. Enforce TLS and require authentication for all commands."
     },
     {
       "product": null,
@@ -125,7 +129,9 @@
       "suggested_commands": [
         "nmap --script ftp-proftpd-backdoor -p 21 {host}"
       ],
-      "metasploit_modules": []
+      "metasploit_modules": [],
+      "priority_reason": "ProFTPD has multiple historical RCEs in mod_copy / mod_sql. Always require authentication; internet-exposed instances are frequent attack targets.",
+      "remediation": "Upgrade to the latest ProFTPD (\u22651.3.7e). Disable mod_copy unless required. Enforce TLS and require authentication for all commands."
     },
     {
       "product": "proftpd",
@@ -139,7 +145,9 @@
       "suggested_commands": [
         "nmap --script ftp-vuln-cve2010-4221 -p 21 {host}"
       ],
-      "metasploit_modules": []
+      "metasploit_modules": [],
+      "priority_reason": "ProFTPD has multiple historical RCEs in mod_copy / mod_sql. Always require authentication; internet-exposed instances are frequent attack targets.",
+      "remediation": "Upgrade to the latest ProFTPD (\u22651.3.7e). Disable mod_copy unless required. Enforce TLS and require authentication for all commands."
     }
   ],
   "http": [
@@ -158,21 +166,9 @@
       ],
       "metasploit_modules": [
         "exploit/multi/http/apache_normalize_path_rce"
-      ]
-    },
-    {
-      "product": "apache",
-      "version_before": "2.4.51",
-      "priority": "high",
-      "cves": [
-        "CVE-2021-41773"
       ],
-      "description": "Apache versions before 2.4.51 may be vulnerable to path traversal. Check if this exact version is affected.",
-      "suggested_commands": [
-        "nmap --script http-shellshock -p {port} {host}",
-        "nikto -h http://{host}:{port}"
-      ],
-      "metasploit_modules": []
+      "priority_reason": "Apache 2.4.49 path-traversal / RCE \u2014 trivially exploitable, widely weaponised. Critical and often unauthenticated.",
+      "remediation": "Upgrade Apache HTTP Server to 2.4.51 or later. Verify no custom aliases expose the filesystem. Review logs for /cgi-bin/.%2e/ patterns."
     },
     {
       "product": "iis",
@@ -189,7 +185,9 @@
       ],
       "metasploit_modules": [
         "exploit/windows/iis/iis_webdav_scstoragepathfromurl"
-      ]
+      ],
+      "priority_reason": "Old IIS versions (\u22648) have multiple disclosed RCEs (e.g. CVE-2017-7269 PROPFIND BoF). IIS 6 and 7 are end-of-life.",
+      "remediation": "Upgrade to IIS 10 on a supported Windows Server. Disable WebDAV and unused modules. Apply all Windows security updates."
     },
     {
       "product": "tp-link",
@@ -207,7 +205,9 @@
       ],
       "metasploit_modules": [
         "auxiliary/scanner/http/tp_link_traversal"
-      ]
+      ],
+      "priority_reason": "TP-LINK admin interface is widely deployed with default credentials (admin/admin) and multiple firmware CVEs.",
+      "remediation": "Change default credentials immediately. Update router firmware. Restrict admin UI to LAN-only. Disable remote management."
     },
     {
       "product": null,
@@ -245,7 +245,9 @@
       "suggested_commands": [
         "nmap --script http-internal-ip-disclosure -p 80,443,8080 {host}"
       ],
-      "metasploit_modules": []
+      "metasploit_modules": [],
+      "priority_reason": "Old IIS versions (\u22648) have multiple disclosed RCEs (e.g. CVE-2017-7269 PROPFIND BoF). IIS 6 and 7 are end-of-life.",
+      "remediation": "Upgrade to IIS 10 on a supported Windows Server. Disable WebDAV and unused modules. Apply all Windows security updates."
     },
     {
       "product": "drupal",
@@ -257,7 +259,9 @@
       "suggested_commands": [
         "nmap --script http-git -p 80,443,8080 {host}"
       ],
-      "metasploit_modules": []
+      "metasploit_modules": [],
+      "priority_reason": "Drupal without latest security releases is exposed to highly exploitable CVEs (Drupageddon, SA-CORE-2018-002).",
+      "remediation": "Upgrade Drupal core to a currently supported release. Subscribe to Drupal security advisories. Restrict admin paths."
     },
     {
       "product": "huawei",
@@ -387,7 +391,9 @@
         "nmap --script http-vuln-cve2014-3704 --script-args http-vuln-cve2014-3704.cmd=\"uname -a\",http-vuln-cve2014-3704.uri=\"/drupal\" <{host}>",
         "nmap --script http-vuln-cve2014-3704 -p 80,443,8080 {host}"
       ],
-      "metasploit_modules": []
+      "metasploit_modules": [],
+      "priority_reason": "Drupal without latest security releases is exposed to highly exploitable CVEs (Drupageddon, SA-CORE-2018-002).",
+      "remediation": "Upgrade Drupal core to a currently supported release. Subscribe to Drupal security advisories. Restrict admin paths."
     },
     {
       "product": "wordpress",
@@ -403,7 +409,9 @@
         "nmap -p80 --script http-wordpress-users <{host}>",
         "nmap --script http-wordpress-users -p 80,443,8080 {host}"
       ],
-      "metasploit_modules": []
+      "metasploit_modules": [],
+      "priority_reason": "WordPress installs accumulate vulnerabilities in plugins/themes; exposed xmlrpc and user enumeration are common entry points.",
+      "remediation": "Keep WordPress core, plugins, and themes updated. Disable xmlrpc.php if unused. Enforce strong admin passwords and 2FA."
     },
     {
       "product": "elasticsearch",
@@ -431,7 +439,9 @@
       "suggested_commands": [
         "nmap --script http-vuln-cve2017-8917 -p 80,443,8080 {host}"
       ],
-      "metasploit_modules": []
+      "metasploit_modules": [],
+      "priority_reason": "Joomla 3.7.0 has an unauthenticated SQL injection via com_fields \u2014 CVE-2017-8917. Attacker can extract admin credentials.",
+      "remediation": "Upgrade Joomla to 3.7.1+. Rotate admin passwords and session tokens."
     }
   ],
   "microsoft-ds": [
@@ -452,7 +462,9 @@
       "metasploit_modules": [
         "exploit/windows/smb/ms17_010_eternalblue",
         "auxiliary/scanner/smb/smb_ms17_010"
-      ]
+      ],
+      "priority_reason": "EternalBlue (MS17-010) \u2014 pre-auth SMBv1 RCE on unpatched Windows. Trivially exploited with public tooling. One of the highest-impact CVEs ever.",
+      "remediation": "Patch Windows with MS17-010 (March 2017) or later. Disable SMBv1 entirely: Disable-WindowsOptionalFeature -Online -FeatureName smb1protocol. Restrict 445/tcp at the firewall."
     },
     {
       "product": "samba",
@@ -497,7 +509,9 @@
       ],
       "metasploit_modules": [
         "exploits/linux/samba/is_known_pipename"
-      ]
+      ],
+      "priority_reason": "Samba <4.5.10 \u2192 SambaCry (CVE-2017-7494) unauth RCE via writable share. Active exploitation in the wild.",
+      "remediation": "Upgrade Samba to \u22654.18. Set 'nt pipe support = no' on legacy versions as a workaround. Restrict writable share ACLs."
     },
     {
       "product": "cisco",
@@ -557,7 +571,9 @@
       ],
       "metasploit_modules": [
         "exploit/multi/samba/usermap_script"
-      ]
+      ],
+      "priority_reason": "Samba 3.0.20 username-map script command injection (CVE-2007-2447) \u2014 remote code execution as root.",
+      "remediation": "Upgrade Samba to latest stable. Never enable 'username map script'. Review smb.conf for dangerous directives."
     }
   ],
   "mongodb": [
@@ -574,7 +590,9 @@
       ],
       "metasploit_modules": [
         "auxiliary/scanner/mongodb/mongodb_login"
-      ]
+      ],
+      "priority_reason": "Default MongoDB deployments frequently ship without auth, allowing full database read/write and ransomware attacks (MongoLock).",
+      "remediation": "Enable authentication (security.authorization: enabled). Bind to private interface. Upgrade to \u22656.x. Disable JS server-side execution unless needed."
     }
   ],
   "mssql": [
@@ -591,7 +609,9 @@
       "metasploit_modules": [
         "auxiliary/scanner/mssql/mssql_login",
         "exploit/windows/mssql/mssql_payload"
-      ]
+      ],
+      "priority_reason": "SQL Server exposed to the internet is brute-forced for sa:password; xp_cmdshell abuse gives full OS compromise.",
+      "remediation": "Disable sa account or use complex password. Disable xp_cmdshell. Restrict 1433 at firewall. Apply current Cumulative Update."
     }
   ],
   "mysql": [
@@ -611,7 +631,9 @@
       "metasploit_modules": [
         "auxiliary/scanner/mysql/mysql_login",
         "auxiliary/admin/mysql/mysql_enum"
-      ]
+      ],
+      "priority_reason": "MySQL exposed on the public network is a frequent target for brute-force, auth-bypass (CVE-2012-2122), and user-defined function RCEs.",
+      "remediation": "Bind MySQL to localhost or private network. Enforce strong root password. Upgrade to current 8.x. Disable LOAD DATA LOCAL where not needed."
     },
     {
       "product": "openssl",
@@ -642,7 +664,9 @@
       "metasploit_modules": [
         "auxiliary/scanner/postgres/postgres_login",
         "exploit/multi/postgres/postgres_copy_from_program_cmd_exec"
-      ]
+      ],
+      "priority_reason": "PostgreSQL with trust/md5 auth over network is vulnerable to brute force and historic CVEs around auth bypass.",
+      "remediation": "Set listen_addresses to localhost or a private IP. Use scram-sha-256 auth in pg_hba.conf. Keep PostgreSQL patched."
     }
   ],
   "rdp": [
@@ -662,7 +686,9 @@
       "metasploit_modules": [
         "exploit/windows/rdp/cve_2019_0708_bluekeep_rce",
         "auxiliary/scanner/rdp/ms12_020_check"
-      ]
+      ],
+      "priority_reason": "BlueKeep (CVE-2019-0708) \u2014 pre-auth RCE on Windows 7/Server 2008 R2 RDP. Wormable.",
+      "remediation": "Apply KB4499164 or upgrade to a supported Windows version. Enable NLA. Restrict 3389 with VPN/bastion. Disable RDP if unused."
     },
     {
       "product": null,
@@ -696,7 +722,9 @@
       "metasploit_modules": [
         "auxiliary/scanner/redis/redis_login",
         "exploit/linux/redis/redis_replication_cmd_exec"
-      ]
+      ],
+      "priority_reason": "Unauthenticated Redis allows anyone to write SSH keys via CONFIG SET / SAVE \u2192 full RCE on the host.",
+      "remediation": "Enable 'requirepass' + strong password. Bind to 127.0.0.1 unless remote access is required. Use ACLs in Redis 6+. Firewall 6379/tcp."
     }
   ],
   "smtp": [
@@ -713,7 +741,9 @@
       "suggested_commands": [
         "nmap --script smtp-vuln-cve2010-4344 -p 25 {host}"
       ],
-      "metasploit_modules": []
+      "metasploit_modules": [],
+      "priority_reason": "Exim has multiple historical unauth RCEs (CVE-2019-10149 'Return of the WIZard', 21Nails).",
+      "remediation": "Upgrade Exim to current release. Restrict relay hosts. Monitor /var/log/exim/ for suspicious MAIL FROM patterns."
     },
     {
       "product": "postfix",
@@ -741,7 +771,9 @@
       "suggested_commands": [
         "nmap --script smtp-vuln-cve2011-1764 -p 25 {host}"
       ],
-      "metasploit_modules": []
+      "metasploit_modules": [],
+      "priority_reason": "Exim has multiple historical unauth RCEs (CVE-2019-10149 'Return of the WIZard', 21Nails).",
+      "remediation": "Upgrade Exim to current release. Restrict relay hosts. Monitor /var/log/exim/ for suspicious MAIL FROM patterns."
     }
   ],
   "ssh": [
@@ -763,7 +795,9 @@
       "metasploit_modules": [
         "auxiliary/scanner/ssh/ssh_login",
         "auxiliary/scanner/ssh/ssh_enumusers"
-      ]
+      ],
+      "priority_reason": "Dropbear <2020.80 has multiple auth-bypass and information-disclosure bugs (CVE-2018-15599 et al).",
+      "remediation": "Upgrade Dropbear to 2022.83 or later. Restrict SSH to mgmt network."
     },
     {
       "product": "openssh",
@@ -780,7 +814,9 @@
       ],
       "metasploit_modules": [
         "auxiliary/scanner/ssh/ssh_enumusers"
-      ]
+      ],
+      "priority_reason": "OpenSSH <8.0 is subject to CVE-2018-15473 username enumeration and scp client vulnerabilities. Low complexity to exploit.",
+      "remediation": "Upgrade OpenSSH server to \u22658.8. Disable password auth, use keys. Set LoginGraceTime low. Monitor auth.log for enumeration patterns."
     },
     {
       "product": "openssh",
@@ -798,7 +834,9 @@
       ],
       "metasploit_modules": [
         "auxiliary/scanner/ssh/ssh_login"
-      ]
+      ],
+      "priority_reason": "OpenSSH <7.0 leaks roaming-channel client state (CVE-2016-0777) and has weak default ciphers.",
+      "remediation": "Upgrade to OpenSSH \u22658.8. Disable ssh_config UseRoaming on older clients. Enforce Ed25519 keys."
     }
   ],
   "ssl": [
@@ -815,7 +853,9 @@
         "nmap -p 22,443 --script rsa-vuln-roca <{host}>",
         "nmap --script rsa-vuln-roca -p 0 {host}"
       ],
-      "metasploit_modules": []
+      "metasploit_modules": [],
+      "priority_reason": "Outdated OpenSSL exposes clients/servers to Heartbleed, ROBOT, and cipher downgrade attacks.",
+      "remediation": "Upgrade OpenSSL to \u22653.0 LTS. Disable SSLv2/v3 and TLS 1.0/1.1. Enforce PFS cipher suites."
     },
     {
       "product": "openssl",
@@ -830,7 +870,9 @@
         "nmap -p 443 --script ssl-ccs-injection <{host}>",
         "nmap --script ssl-ccs-injection -p 443 {host}"
       ],
-      "metasploit_modules": []
+      "metasploit_modules": [],
+      "priority_reason": "Outdated OpenSSL exposes clients/servers to Heartbleed, ROBOT, and cipher downgrade attacks.",
+      "remediation": "Upgrade OpenSSL to \u22653.0 LTS. Disable SSLv2/v3 and TLS 1.0/1.1. Enforce PFS cipher suites."
     },
     {
       "product": null,
@@ -890,7 +932,9 @@
       ],
       "metasploit_modules": [
         "auxiliary/scanner/telnet/telnet_login"
-      ]
+      ],
+      "priority_reason": "Telnet transmits credentials in plaintext and is often default-credentialed on embedded devices \u2014 legacy, no business justification.",
+      "remediation": "Disable telnet service. Use SSH instead. If legacy device requires telnet, isolate it on a management VLAN."
     }
   ],
   "tomcat": [
@@ -907,7 +951,9 @@
       "metasploit_modules": [
         "exploit/multi/http/tomcat_mgr_upload",
         "auxiliary/scanner/http/tomcat_mgr_login"
-      ]
+      ],
+      "priority_reason": "Apache Tomcat manager/host-manager with weak credentials leads to WAR-file upload RCE. Ghostcat (CVE-2020-1938) reads files via AJP.",
+      "remediation": "Remove manager/host-manager unless needed. Disable AJP connector (port 8009) or bind to localhost. Upgrade to Tomcat 10.x."
     }
   ],
   "unknown": [
@@ -995,7 +1041,9 @@
       ],
       "metasploit_modules": [
         "auxiliary/scanner/upnp/ssdp_msearch"
-      ]
+      ],
+      "priority_reason": "Portable SDK for UPnP (libupnp) has buffer overflow / RCE CVEs; common in embedded devices exposed to the LAN.",
+      "remediation": "Disable UPnP on the LAN unless required. Upgrade router/device firmware. Block 1900/udp + UPnP ports at the perimeter."
     },
     {
       "product": null,
@@ -1044,7 +1092,9 @@
       "metasploit_modules": [
         "exploit/multi/misc/weblogic_deserialize_asyncresponseservice",
         "exploit/windows/misc/weblogic_xmlentity_rce"
-      ]
+      ],
+      "priority_reason": "Oracle WebLogic CVE-2020-14882/14883 \u2014 unauthenticated RCE via console. Actively exploited.",
+      "remediation": "Apply Oracle CPU patches. Restrict /console to trusted IPs. Upgrade to supported WebLogic version."
     }
   ]
 }
