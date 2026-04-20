@@ -15,6 +15,10 @@ Rules enforced before writing:
   - Max one generic fallback entry per service (product=null, version_match=null, version_before=null)
   - _source tracking fields are stripped from final output
 
+Optional (v0.3.0+) fields preserved as-is if present:
+  - priority_reason  (one-line human explanation of *why* the priority)
+  - remediation      (concrete fix steps — upgrade version, disable feature, etc.)
+
 Run:
     python3 tools/merge_kb.py
 """

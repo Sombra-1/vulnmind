@@ -41,8 +41,12 @@ vulnmind_report.*
 # Allow the bundled test samples
 !tests/sample_nmap.xml
 
-# Config (contains API keys)
+# Config + runtime caches (API keys, NVD CVE cache, update checker state)
 .vulnmind/
 
 # Test artifacts
 *.log
+
+# Ad-hoc scratch files generated during tools/ scripts
+tools/staging/nvd_extracted.json
+tools/staging/manual_additions.json

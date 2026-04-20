@@ -1,8 +1,12 @@
 """
-nvd_seed.py — NVD API bulk fetch for vulnerability entries.
+nvd_seed.py — NVD API bulk fetch for KB expansion.
 
-Fetches CVE data for specified products/services from the National Vulnerability Database (NVD) API.
-Outputs to tools/staging/nvd_extracted.json which can then be merged using merge_kb.py.
+Fetches CVE data for a list of products/services from the National Vulnerability
+Database API 2.0, dumps them to tools/staging/nvd_extracted.json, and hands off
+to merge_kb.py for validation and merge into vulnmind/knowledge/services.json.
+
+This is a *build-time* tool — for runtime CVE enrichment see vulnmind/nvd.py,
+which hits NVD live under `--deep`.
 
 Usage:
   python tools/nvd_seed.py

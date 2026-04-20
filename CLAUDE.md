@@ -56,11 +56,13 @@ If those numbers regress, something broke. The most common regression surfaces a
 ```
 vulnmind/
 ├── cli.py               # Click entry point, orchestrates the pipeline
+├── banner.py            # VulnMind + Sombra-1 ASCII banner (text-mode only)
 ├── config.py            # ~/.vulnmind/config.json (API key, model override)
 ├── nvd.py               # NVD API 2.0 client (deep mode), per-CVE file cache
 ├── matcher.py           # Offline KB matcher — strong vs weak confidence
 ├── ai.py                # Groq enrichment (--enrich)
 ├── report.py            # reportlab PDF generator
+├── updater.py           # Background update-check against GitHub releases
 ├── knowledge/services.json  # offline CVE KB (22 services, ~70 entries)
 └── parsers/
     ├── base.py          # BaseParser + Finding dataclass
@@ -70,6 +72,12 @@ vulnmind/
 ```
 
 Pipeline: **parse → match (KB) → [optional NVD deep] → [optional AI enrich] → render (text/json/pdf)**.
+
+## Banner
+
+The startup banner lives in `vulnmind/banner.py` and is a combined VulnMind wordmark + Sombra-1 signature. `cli.print_banner()` calls `banner.render(use_color=True)` and feeds the Rich markup to the console. The banner is printed for `vulnmind` (no args) and at the top of `vulnmind analyze` when `--format text`. It is **suppressed** for `--format json` so piped output stays machine-readable.
+
+When adding new art, keep it ≤75 cols wide to fit a standard terminal and preserve the `by SOMBRA-1` signature.
 
 ## Design rules — non-obvious, easy to violate
 
