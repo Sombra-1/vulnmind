@@ -70,6 +70,22 @@ vulnmind analyze nikto.txt
 vulnmind analyze scan.xml nikto.txt
 ```
 
+### Scan — let VulnMind run nmap for you *(new in v0.4.0)*
+
+```bash
+# scan + analyze in one step (defaults: -sV -sC --top-ports 1000)
+vulnmind scan 192.168.1.1
+
+# CIDR range with NVD enrichment
+vulnmind scan 10.0.0.0/24 --deep
+
+# custom ports + pass-through nmap flags
+vulnmind scan target.local -p 22,80,443 --nmap-args "-T4 -Pn"
+```
+
+Requires the `nmap` binary on PATH. VulnMind prints an authorisation notice
+before every scan — only run against systems you own or have permission to test.
+
 ### Deep mode — live CVE lookups from NVD
 
 ```bash
@@ -152,6 +168,12 @@ vulnmind analyze <files> [OPTIONS]
   --output PATH     Output filename for the PDF (default: vulnmind_report.pdf)
   --format text|json  Output format (default: text)
 
+vulnmind scan <target> [OPTIONS]          # new in v0.4.0 — runs nmap for you
+
+  -p, --ports       Port spec passed to nmap (e.g. '22,80,443'); disables --top-ports
+  --nmap-args STR   Extra flags forwarded to nmap, shell-quoted (e.g. "-T4 -Pn")
+  --deep / --enrich / --report / --output / --format   (same as analyze)
+
 vulnmind config set-key <key>   Save your Groq API key
 vulnmind config show            Show current config
 vulnmind config clear           Remove all saved config
@@ -180,6 +202,11 @@ Supported tools wanted: OpenVAS, Burp Suite, Nessus, Nuclei.
 ---
 
 ## Changelog
+
+### v0.4.0
+- **`vulnmind scan <target>` subcommand** — runs nmap for you and feeds the XML straight into the existing analyze pipeline. Defaults to `-sV -sC --top-ports 1000`; accepts `-p/--ports` for custom port ranges and `--nmap-args "..."` for arbitrary pass-through flags (shell-quoted). Prints an authorisation notice on every text-mode run and streams nmap's progress to the terminal so you see the scan as it happens. Temp XML is cleaned up automatically. Fails loudly with install instructions if `nmap` is not on PATH.
+- **Pipeline refactor** — `analyze` and `scan` now share a single internal pipeline function, so any future change to parse → match → NVD → AI → render applies to both paths.
+- **Bug fixes** — empty-findings JSON output now bypasses Rich (consistent with the rest of JSON mode, avoids stray ANSI); removed a dead `picked_priority` variable in the NVD enrichment path.
 
 ### v0.3.0
 - **Metasploit parser** — full implementation. Parses `spool` / piped msfconsole logs, tracks the active module across `use <module>` and `msf6 exploit(...) >` prompts, filters out progress noise and failed attempts, promotes `meterpreter session opened` / `login successful` to critical/high.

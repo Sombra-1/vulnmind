@@ -3,6 +3,7 @@ cli.py — Entry point for VulnMind.
 
 Command structure:
   vulnmind analyze <files> [--enrich] [--deep] [--report pdf] [--output path] [--format text|json]
+  vulnmind scan <target>   [-p ports] [--nmap-args "..."] [--enrich] [--deep] [--report pdf] [--output path] [--format text|json]
   vulnmind config set-key <api-key>
   vulnmind config show
   vulnmind config clear
@@ -112,7 +113,171 @@ def analyze(files: tuple, report: str | None, output: str, enrich: bool, deep: b
       vulnmind analyze scan.xml --report pdf --output report.pdf
       vulnmind analyze scan.xml --format json > findings.json
     """
+    _run_pipeline(
+        file_paths=list(files),
+        report=report,
+        output=output,
+        enrich=enrich,
+        deep=deep,
+        output_format=output_format,
+        show_banner=True,
+    )
+
+
+# ---------------------------------------------------------------------------
+# scan command — run nmap + analyze in one step (v0.4.0)
+# ---------------------------------------------------------------------------
+
+@cli.command()
+@click.argument("target")
+@click.option(
+    "-p", "--ports",
+    default=None,
+    help="Port specification passed to nmap (e.g. '22,80,443' or '1-65535'). Disables --top-ports.",
+)
+@click.option(
+    "--nmap-args",
+    "nmap_args",
+    default="",
+    help='Extra flags forwarded to nmap, shell-quoted (e.g. --nmap-args "-T4 -Pn").',
+)
+@click.option(
+    "--report",
+    type=click.Choice(["pdf"]),
+    default=None,
+    help="Generate a PDF report.",
+)
+@click.option(
+    "--output",
+    default="vulnmind_report.pdf",
+    show_default=True,
+    help="Output filename for the PDF report.",
+)
+@click.option(
+    "--enrich",
+    is_flag=True,
+    default=False,
+    help="AI analysis: plain-English explanations, exploit commands, Metasploit modules.",
+)
+@click.option(
+    "--deep",
+    is_flag=True,
+    default=False,
+    help="Look up each CVE in NVD for official CVSS scores + more evidence to AI.",
+)
+@click.option(
+    "--format", "output_format",
+    type=click.Choice(["text", "json"]),
+    default="text",
+    show_default=True,
+    help="Output format. Use 'json' for machine-readable output.",
+)
+def scan(
+    target: str,
+    ports: str | None,
+    nmap_args: str,
+    report: str | None,
+    output: str,
+    enrich: bool,
+    deep: bool,
+    output_format: str,
+):
+    """
+    Scan a live target with nmap and analyze the results in one step.
+
+    \b
+    Target can be an IP, hostname, or CIDR range:
+      vulnmind scan 192.168.1.1
+      vulnmind scan target.local -p 22,80,443
+      vulnmind scan 10.0.0.0/24 --deep
+      vulnmind scan scanme.nmap.org --enrich --nmap-args "-T4 -Pn"
+
+    \b
+    Defaults: nmap -sV -sC --top-ports 1000
+    (version detection, default NSE scripts, top 1000 ports).
+    Use -p/--ports to override the port range, or --nmap-args to pass
+    arbitrary extra flags through to nmap.
+
+    Requires the nmap binary on PATH.
+    """
+    from vulnmind.scanner import run_nmap, nmap_available, ScannerError
+
     if output_format == "text":
+        print_banner()
+        console.print(Panel(
+            "[bold]Only scan systems you own or have written authorisation to test.[/bold]\n"
+            "[dim]Unauthorised scanning may violate computer-misuse laws in your jurisdiction.[/dim]",
+            title="[yellow]! Authorisation notice[/yellow]",
+            border_style="yellow",
+            padding=(0, 2),
+        ))
+
+    if not nmap_available():
+        console.print(
+            "[red]nmap binary not found on PATH.[/red]\n"
+            "Install with:  [bold]sudo pacman -S nmap[/bold] (Arch) "
+            "or [bold]sudo apt install nmap[/bold] (Debian/Kali)."
+        )
+        sys.exit(1)
+
+    # Run nmap — stderr streams to terminal in text mode so user sees progress.
+    # In JSON mode we silence nmap so the JSON output stays clean.
+    quiet = output_format == "json"
+    if output_format == "text":
+        console.print(f"[dim]Running nmap against[/dim] [bold]{target}[/bold]...")
+
+    try:
+        xml_path = run_nmap(
+            target=target,
+            ports=ports,
+            extra_args_str=nmap_args,
+            quiet=quiet,
+        )
+    except ScannerError as e:
+        console.print(f"[red]{e}[/red]")
+        sys.exit(1)
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Scan interrupted.[/yellow]")
+        sys.exit(130)
+
+    try:
+        _run_pipeline(
+            file_paths=[xml_path],
+            report=report,
+            output=output,
+            enrich=enrich,
+            deep=deep,
+            output_format=output_format,
+            show_banner=False,  # already printed above for text mode
+        )
+    finally:
+        # Always clean up the temp XML, even on display/pipeline failure.
+        try:
+            xml_path.unlink(missing_ok=True)
+        except OSError:
+            pass
+
+
+# ---------------------------------------------------------------------------
+# Shared analyze/scan pipeline
+# ---------------------------------------------------------------------------
+
+def _run_pipeline(
+    file_paths: list[Path],
+    report: str | None,
+    output: str,
+    enrich: bool,
+    deep: bool,
+    output_format: str,
+    show_banner: bool,
+) -> None:
+    """
+    Parse → match → [NVD] → [AI] → render.
+
+    Used by both `analyze` (user-supplied files) and `scan` (one temp XML file
+    produced by nmap).
+    """
+    if show_banner and output_format == "text":
         print_banner()
 
     # Start update check in background — overlaps with parsing, costs nothing
@@ -138,7 +303,7 @@ def analyze(files: tuple, report: str | None, output: str, enrich: bool, deep: b
 
     # --- Parse ---
     all_findings = []
-    for file_path in files:
+    for file_path in file_paths:
         try:
             findings = load_files([file_path])
             all_findings.extend(findings)
@@ -149,7 +314,7 @@ def analyze(files: tuple, report: str | None, output: str, enrich: bool, deep: b
     if not all_findings:
         if output_format == "json":
             import json as _json
-            console.print(_json.dumps([]))
+            sys.stdout.write(_json.dumps([]) + "\n")
         else:
             console.print(Panel(
                 "No findings were extracted from the provided file(s).\n\n"

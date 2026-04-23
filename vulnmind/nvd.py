@@ -140,7 +140,7 @@ def _fetch_cve(cve_id: str, max_retries: int = 3) -> Optional[dict]:
                 params={"cveId": cve_id},
                 headers={
                     "Accept": "application/json",
-                    "User-Agent": "vulnmind/0.3.0 (+https://github.com/Sombra-1/vulnmind)",
+                    "User-Agent": "vulnmind/0.4.0 (+https://github.com/Sombra-1/vulnmind)",
                 },
                 timeout=REQUEST_TIMEOUT,
             )
@@ -231,7 +231,6 @@ def _apply_to_finding(finding, cve_data: dict):
         return finding
 
     max_score: Optional[float] = finding.cvss_score
-    picked_priority: Optional[str] = None
 
     for cve_id in finding.cve_ids:
         cid = cve_id.upper()

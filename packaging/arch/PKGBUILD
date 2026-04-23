@@ -1,11 +1,12 @@
 pkgname=vulnmind
-pkgver=0.3.0
+pkgver=0.4.0
 pkgrel=1
 pkgdesc="CLI security scan analyzer. Parses nmap/nikto/Metasploit output, matches CVEs offline, optional live NVD lookup."
 arch=('any')
 url="https://github.com/Sombra-1/vulnmind"
 license=('MIT')
 depends=('python' 'python-click' 'python-rich' 'python-requests' 'python-reportlab')
+optdepends=('nmap: live scanning via `vulnmind scan`')
 makedepends=('python-setuptools')
 source=("$pkgname-$pkgver.tar.gz::https://github.com/Sombra-1/vulnmind/archive/refs/tags/v$pkgver.tar.gz")
 sha256sums=('SKIP')

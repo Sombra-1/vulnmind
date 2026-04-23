@@ -9,6 +9,7 @@ Homepage: https://github.com/Sombra-1/vulnmind
 Package: vulnmind
 Architecture: all
 Depends: ${python3:Depends}, ${misc:Depends}, python3-click, python3-rich, python3-requests, python3-reportlab
+Recommends: nmap
 Description: Security scan analyzer for pentesters
  CLI tool that parses Nmap, Nikto, and Metasploit console output into
  structured findings. Matches CVEs against a built-in offline knowledge
