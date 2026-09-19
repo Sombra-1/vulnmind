@@ -1,5 +1,5 @@
 pkgname=vulnmind
-pkgver=0.6.0
+pkgver=0.6.1
 pkgrel=1
 pkgdesc="CLI security scan analyzer with offline CVE matching and optional NVD, CISA KEV, and ExploitDB intelligence."
 arch=('any')

@@ -31,36 +31,39 @@ class NucleiParser(BaseParser):
 
     def can_parse(self, file_path: Path, content_preview: str) -> bool:
         """Return True if this looks like Nuclei JSONL output."""
-        preview = content_preview.lstrip()
-        if not preview.startswith("{"):
-            return False
+        # Detection must tolerate the same leading bad records and key aliases
+        # as parsing. Stay within the dispatcher's bounded content preview.
+        for line in content_preview.lstrip("\ufeff").splitlines():
+            line = line.strip()
+            if not line.startswith("{"):
+                continue
+            try:
+                event = json.loads(line)
+            except json.JSONDecodeError:
+                # A long record may be cut off by the preview boundary.
+                lower = line.lower()
+                if (
+                    ('"template-id"' in lower or '"templateid"' in lower)
+                    and '"info"' in lower
+                    and any(f'"{key}"' in lower for key in ("matched-at", "matchedat", "host", "matched"))
+                ):
+                    return True
+                continue
 
-        first_line = preview.splitlines()[0] if preview.splitlines() else preview
-        try:
-            event = json.loads(first_line)
-        except json.JSONDecodeError:
-            event = None
-
-        if isinstance(event, dict):
-            keys = set(event.keys())
-            if {"template-id", "info"} <= keys or {"templateID", "info"} <= keys:
-                return True
-            if {"matched-at", "template-id"} <= keys or {"matched", "templateID"} <= keys:
-                return True
-
-        lower = preview[:1000].lower()
-        return (
-            '"template-id"' in lower
-            and '"info"' in lower
-            and ('"matched-at"' in lower or '"host"' in lower or '"matched"' in lower)
-        )
+            if isinstance(event, dict):
+                keys = set(event)
+                if keys & {"template-id", "templateID", "TemplateID"} and keys & {
+                    "info", "Info", "matched-at", "matchedAt", "matched", "Matched",
+                }:
+                    return True
+        return False
 
     def parse(self, file_path: Path, content: str) -> list:
         """Parse Nuclei JSONL. Bad lines are ignored instead of aborting."""
         findings = []
         seen_ids = set()
 
-        for line in content.splitlines():
+        for line in content.lstrip("\ufeff").splitlines():
             line = line.strip()
             if not line:
                 continue

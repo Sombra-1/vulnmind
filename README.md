@@ -55,14 +55,14 @@ VulnMind BASIC  ·  1 critical  2 high  2 medium  0 low  (5 total)
 The recommended install uses pipx, which keeps VulnMind in an isolated environment:
 
 ```bash
-pipx install "vulnmind @ https://github.com/Sombra-1/vulnmind/archive/refs/tags/v0.6.0.tar.gz"
+pipx install "vulnmind @ https://github.com/Sombra-1/vulnmind/archive/refs/tags/v0.6.1.tar.gz"
 ```
 
 Or use pip inside a virtual environment:
 
 ```bash
 python -m venv .venv
-./.venv/bin/python -m pip install "vulnmind @ https://github.com/Sombra-1/vulnmind/archive/refs/tags/v0.6.0.tar.gz"
+./.venv/bin/python -m pip install "vulnmind @ https://github.com/Sombra-1/vulnmind/archive/refs/tags/v0.6.1.tar.gz"
 ```
 
 VulnMind is currently distributed through GitHub Releases rather than PyPI.
@@ -183,6 +183,30 @@ vulnmind update
 
 Pip and pipx installations update from the exact SemVer release tag returned by GitHub. Source checkouts and system-package installations are not modified automatically; the command prints safe, installation-specific instructions instead.
 
+#### Verify release downloads
+
+For a checksum-verified installation, download the wheel, source distribution, and `SHA256SUMS` from the [v0.6.1 release](https://github.com/Sombra-1/vulnmind/releases/tag/v0.6.1) into an empty directory. With the GitHub CLI:
+
+```bash
+gh release download v0.6.1 --repo Sombra-1/vulnmind --pattern 'vulnmind-*' --pattern SHA256SUMS
+sha256sum --check SHA256SUMS
+# Continue only if both files report OK. Install into your existing virtualenv:
+python -m pip install ./vulnmind-0.6.1-py3-none-any.whl
+```
+
+On macOS, use `shasum -a 256 --check SHA256SUMS`. Checksums apply to the attached wheel and source distribution, not GitHub's automatically generated source archives. They detect damaged or changed downloads; they are not signatures or independent publisher verification. The `vulnmind update` command installs a tag archive and does not verify these asset checksums.
+
+#### Manual rollback
+
+To return a pipx installation to v0.6.0:
+
+```bash
+pipx install --force "vulnmind @ https://github.com/Sombra-1/vulnmind/archive/refs/tags/v0.6.0.tar.gz"
+vulnmind --version
+```
+
+For a virtualenv installation, run its `python -m pip install --force-reinstall "vulnmind @ https://github.com/Sombra-1/vulnmind/archive/refs/tags/v0.6.0.tar.gz"`, then its `vulnmind --version`. Keep any custom `PIPX_HOME` setting when using pipx. For source checkouts, preserve local work and check out the desired tag in a separate worktree; use your package manager's downgrade procedure for system packages. Config and caches remain under `~/.vulnmind`; v0.6.1 adds no config or finding-schema migration.
+
 ---
 
 ## Supported formats
@@ -301,11 +325,31 @@ python -m venv .venv
 ```
 
 The GitHub Actions workflow runs the same suite on Python 3.10, 3.11, and 3.12,
-then smoke-tests the installed `vulnmind` entry point.
+then builds and installs the wheel in a fresh virtualenv outside the checkout.
+It checks all five sample formats, JSON fields, bundled KB access, and PDF output.
+Tag pushes also test installation directly from the exact published GitHub tag
+archive on Python 3.10. The smoke checks can be repeated with
+`/path/to/fresh/venv/bin/python tools/check_installed.py tests --version 0.6.1`.
+
+## Planned updates
+
+- **Next hardening patch:** automate bundled Metasploit module validation against Rapid7 metadata; add cache-health diagnostics and interrupted-write coverage; exercise custom pipx homes and assess signed release attestations.
+- **v0.7.0 candidates:** Nessus input, SARIF/HTML reports, and conservative cross-tool deduplication that retains each scanner's evidence.
+- **Later:** scan comparisons, engagement policy files, and broader CPE-based matching with explicit accuracy tests.
+
+These are priorities for evaluation, not committed release dates. Matching accuracy, offline behavior, and stable JSON remain the release gates.
 
 ---
 
 ## Changelog
+
+### v0.6.1
+- **Parser fixes** — Nikto multi-target reports retain the correct host/port and exclude target metadata from findings; invalid ports no longer leak through. Nuclei format detection accepts Go-style keys, leading malformed records within the preview, and UTF-8 BOMs.
+- **Config resilience** — owner-only atomic saves preserve the previous config if replacement fails; invalid file encoding falls back to defaults, and non-string secret values remain masked in config display.
+- **IPv6 accuracy** — canonical IPv6 parsing and finding IDs across nmap, Nuclei, and Metasploit; bracketed host/port rendering in terminal, PDF, and AI status output; invalid Metasploit ports rejected.
+- **Scan cleanup** — nmap launch failures, including permission errors, remove temporary XML and produce the normal scanner error.
+- **Release verification** — documented asset checksum verification and manual rollback; fresh installed-wheel smoke checks across Python 3.10/3.11/3.12 and a published-tag installation check on Python 3.10.
+- **Regression coverage** — 174 tests, including reproductions for the parser, config, and scanner fixes. No finding JSON schema changes.
 
 ### v0.6.0
 - **Exploit intelligence** — exact-CVE lookups against the official CISA KEV catalog and ExploitDB CSV, with offline-first caches, stale-cache fallback, bounded downloads, and silent network failure handling.

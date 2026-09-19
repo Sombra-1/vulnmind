@@ -28,6 +28,19 @@ def test_valid_non_object_config_falls_back_to_defaults(tmp_path, monkeypatch):
     assert config.update_checks_enabled is True
 
 
+def test_invalid_config_encoding_falls_back_to_defaults(tmp_path, monkeypatch):
+    config_file = tmp_path / "config.json"
+    config_file.write_bytes(b"\xff")
+    monkeypatch.setattr(config_module, "CONFIG_FILE", config_file)
+
+    assert Config.load().display_dict() == {}
+
+
+@pytest.mark.parametrize("value", [123456789, True, {"secret": "do-not-display"}, ["do-not-display"]])
+def test_config_display_masks_non_string_secrets(value):
+    assert Config({"groq_api_key": value}).display_dict() == {"groq_api_key": "***"}
+
+
 def test_config_command_persists_update_check_opt_out(tmp_path, monkeypatch):
     config_file = tmp_path / "config.json"
     monkeypatch.setattr(config_module, "CONFIG_DIR", tmp_path)
