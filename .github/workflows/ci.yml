@@ -38,3 +38,28 @@ jobs:
         run: |
           python -m build --wheel
           python -c "import glob, zipfile; wheel = glob.glob('dist/*.whl')[0]; names = set(zipfile.ZipFile(wheel).namelist()); required = {'vulnmind/knowledge/services.json', 'vulnmind/enrichers/kev.py', 'vulnmind/enrichers/exploitdb.py', 'vulnmind/enrichers/intelligence.py'}; missing = required - names; assert not missing, f'missing wheel files: {sorted(missing)}'"
+
+      - name: Test installed wheel outside source checkout
+        run: |
+          python -m venv "$RUNNER_TEMP/vulnmind-wheel"
+          "$RUNNER_TEMP/vulnmind-wheel/bin/python" -m pip install dist/*.whl
+          cd "$RUNNER_TEMP"
+          "$RUNNER_TEMP/vulnmind-wheel/bin/python" "$GITHUB_WORKSPACE/tools/check_installed.py" "$GITHUB_WORKSPACE/tests" --version 0.6.1
+
+  published-tag:
+    name: Published tag installation
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Install and test exact GitHub tag archive
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          python -m venv "$RUNNER_TEMP/vulnmind-tag"
+          "$RUNNER_TEMP/vulnmind-tag/bin/python" -m pip install "https://github.com/Sombra-1/vulnmind/archive/refs/tags/$RELEASE_TAG.tar.gz"
+          cd "$RUNNER_TEMP"
+          "$RUNNER_TEMP/vulnmind-tag/bin/python" "$GITHUB_WORKSPACE/tools/check_installed.py" "$GITHUB_WORKSPACE/tests" --version "${RELEASE_TAG#v}"

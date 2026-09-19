@@ -152,7 +152,7 @@ def run_nmap(
             text=True,
             check=False,
         )
-    except FileNotFoundError as e:
+    except OSError as e:
         xml_path.unlink(missing_ok=True)
         raise ScannerError(f"Failed to launch nmap: {e}") from e
     except KeyboardInterrupt:

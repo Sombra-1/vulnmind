@@ -74,6 +74,38 @@ def test_nuclei_can_parse_go_style_json_keys():
     assert findings[0].cve_ids == ["CVE-2024-12345"]
 
 
+@pytest.mark.parametrize("prefix", ["", "not-json\n", "[]\n", "\ufeff"])
+@pytest.mark.parametrize("keys", [("template-id", "info", "matched-at"), ("TemplateID", "Info", "Matched")])
+def test_nuclei_detection_recovers_valid_records(tmp_path, prefix, keys):
+    template, info, matched = keys
+    scan = tmp_path / "scanner-output.txt"
+    scan.write_text(prefix + json.dumps({
+        template: "detection-test",
+        info: {"name": "Detected finding", "severity": "medium"},
+        matched: "https://example.com/path",
+    }) + "\n", encoding="utf-8")
+
+    findings = detect_and_parse(scan)
+
+    assert len(findings) == 1
+    assert findings[0].host == "example.com"
+    assert findings[0].priority == "medium"
+
+
+def test_nuclei_detection_accepts_camelcase_target_without_info(tmp_path):
+    scan = tmp_path / "scanner-output.txt"
+    scan.write_text(json.dumps({
+        "templateID": "minimal-record",
+        "matchedAt": "https://example.com/path",
+    }))
+
+    findings = detect_and_parse(scan)
+
+    assert len(findings) == 1
+    assert findings[0].host == "example.com"
+    assert findings[0].port == 443
+
+
 @pytest.mark.parametrize(
     ("target", "expected_port"),
     [

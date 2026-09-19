@@ -81,6 +81,40 @@ class NiktoParser(BaseParser):
         for line in lines:
             line = line.strip()
 
+            # A report can contain several targets. Process metadata in either
+            # state so the next target cannot inherit the previous host/port.
+            if line.startswith("- Nikto v") or line.startswith("+ End Time:"):
+                target_host = None
+                target_port = None
+                in_findings = False
+                continue
+
+            if line.startswith("+ Target IP:"):
+                target_host = line.split(":", 1)[1].strip() or None
+                target_port = None
+                in_findings = False
+                continue
+
+            if line.startswith("+ Target Hostname:"):
+                if in_findings:
+                    target_host = None
+                    target_port = None
+                    in_findings = False
+                if not target_host:
+                    target_host = line.split(":", 1)[1].strip() or None
+                continue
+
+            if line.startswith("+ Target Port:"):
+                try:
+                    port = int(line.split(":", 1)[1].strip())
+                    target_port = port if 0 < port <= 65535 else None
+                except ValueError:
+                    target_port = None
+                continue
+
+            if any(line.startswith(p) for p in _HEADER_PREFIXES):
+                continue
+
             # Separator lines (---) mark the end of the header block
             if line.startswith("-----"):
                 if target_host and target_port:
@@ -89,26 +123,6 @@ class NiktoParser(BaseParser):
 
             # --- HEADER state ---
             if not in_findings:
-                if line.startswith("+ Target IP:"):
-                    target_host = line.split(":", 1)[1].strip()
-                    continue
-
-                if line.startswith("+ Target Hostname:") and not target_host:
-                    # Use hostname only if we didn't get an IP
-                    target_host = line.split(":", 1)[1].strip()
-                    continue
-
-                if line.startswith("+ Target Port:"):
-                    try:
-                        target_port = int(line.split(":", 1)[1].strip())
-                    except ValueError:
-                        pass
-                    continue
-
-                # Skip any other known header-only lines
-                if any(line.startswith(p) for p in _HEADER_PREFIXES):
-                    continue
-
                 # Transition to FINDINGS state when we see the first non-header + line
                 if line.startswith("+ ") and target_host:
                     in_findings = True

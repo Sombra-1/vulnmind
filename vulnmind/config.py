@@ -51,9 +51,9 @@ class Config:
         """Load config from disk. Returns empty config if file doesn't exist."""
         if CONFIG_FILE.exists():
             try:
-                with open(CONFIG_FILE, "r") as f:
+                with open(CONFIG_FILE, "r", encoding="utf-8") as f:
                     data = json.load(f)
-            except (json.JSONDecodeError, OSError):
+            except (ValueError, OSError):
                 # Corrupt or unreadable config — start fresh rather than crashing
                 data = {}
             if not isinstance(data, dict):
@@ -155,7 +155,10 @@ class Config:
         for key, value in self._data.items():
             if "key" in key.lower() and value:
                 # Show only first 8 chars of keys: gsk_1234...
-                result[key] = value[:8] + "..." if len(value) > 8 else "***"
+                result[key] = (
+                    value[:8] + "..."
+                    if isinstance(value, str) and len(value) > 8 else "***"
+                )
             else:
                 result[key] = value
         return result
