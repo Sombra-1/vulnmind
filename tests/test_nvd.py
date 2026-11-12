@@ -4,7 +4,7 @@ import time
 import pytest
 import requests
 
-from vulnmind import nvd
+from vulnmind import _atomic, nvd
 from vulnmind.parsers.base import Finding
 
 
@@ -90,14 +90,14 @@ def test_cache_round_trip_uses_configured_cache_dir(tmp_path, monkeypatch):
 
 def test_cache_write_uses_atomic_replace(tmp_path, monkeypatch):
     monkeypatch.setattr(nvd, "NVD_CACHE_DIR", tmp_path)
-    real_replace = nvd.os.replace
+    real_replace = _atomic.os.replace
     replacements = []
 
     def record_replace(source, destination):
         replacements.append((source, destination))
         real_replace(source, destination)
 
-    monkeypatch.setattr(nvd.os, "replace", record_replace)
+    monkeypatch.setattr(_atomic.os, "replace", record_replace)
 
     nvd._write_cache("CVE-2024-0001", {"found": True})
 
@@ -216,6 +216,7 @@ def test_fetch_cve_tolerates_malformed_nested_fields(monkeypatch):
         "vulnerabilities": [
             {
                 "cve": {
+                    "id": "CVE-2024-0001",
                     "descriptions": [None, {"lang": "en", "value": 123}],
                     "metrics": {
                         "cvssMetricV31": [None],
@@ -277,10 +278,10 @@ def test_fetch_cve_silently_returns_none_on_request_failure(monkeypatch):
 
 
 def test_enrich_with_nvd_lifts_priority_using_highest_cvss(monkeypatch):
-    finding = make_finding(cve_ids=["CVE-2024-LOW", "CVE-2024-CRIT"], priority="medium")
+    finding = make_finding(cve_ids=["CVE-2024-0001", "CVE-2024-0002"], priority="medium")
     data = {
-        "CVE-2024-LOW": {"found": True, "cvss_score": 4.3},
-        "CVE-2024-CRIT": {"found": True, "cvss_score": 9.1},
+        "CVE-2024-0001": {"found": True, "cvss_score": 4.3},
+        "CVE-2024-0002": {"found": True, "cvss_score": 9.1},
     }
 
     monkeypatch.setattr(nvd, "_read_cache", lambda cve_id: data[cve_id])

@@ -1,0 +1,12 @@
+include LICENSE README.md requirements.txt dev-requirements.txt
+recursive-include vulnmind *.py *.json
+recursive-include tests *.py *.txt *.xml *.jsonl *.json
+include tools/check_artifacts.py tools/check_installed.py tools/validate_modules.py tools/module-validation.json
+recursive-include packaging PKGBUILD control
+exclude CLAUDE.md
+prune output
+prune .venv
+prune build
+prune .git
+prune .pytest_cache
+global-exclude *.py[cod] .env .env.* *.pem *.key

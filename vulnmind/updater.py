@@ -31,6 +31,7 @@ from pathlib import Path
 
 import requests
 
+from vulnmind._atomic import write_text
 from vulnmind import __version__
 from vulnmind.config import CACHE_DIR
 
@@ -333,12 +334,20 @@ def perform_update(
         command = (pipx_executable, *command[1:])
 
     try:
+        run_options = {}
+        if plan.installation_method == INSTALL_PIPX:
+            prefix = Path(sys.prefix).resolve()
+            if prefix.parent.name == "venvs":
+                # Update the active pipx home even when its environment variable
+                # is unset or points at another installation.
+                run_options["env"] = {**os.environ, "PIPX_HOME": str(prefix.parent.parent)}
         completed = subprocess.run(
             command,
             check=False,
             capture_output=True,
             text=True,
             shell=False,
+            **run_options,
         )
     except (OSError, subprocess.SubprocessError) as exc:
         return UpdateResult(
@@ -461,9 +470,11 @@ def _read_cache() -> dict | None:
     try:
         if not CACHE_FILE.exists():
             return None
+        if CACHE_FILE.stat().st_size > 64 * 1024:
+            return None
         with open(CACHE_FILE, encoding="utf-8") as cache_file:
             data = json.load(cache_file)
-    except (OSError, ValueError, TypeError):
+    except (OSError, ValueError, TypeError, RecursionError):
         return None
 
     if not isinstance(data, dict):
@@ -495,21 +506,10 @@ def _read_cache() -> dict | None:
 
 def _write_cache(result: dict) -> None:
     """Atomically write release-check state, silently on failure."""
-    temp_file = CACHE_FILE.with_name(
-        f".{CACHE_FILE.name}.{os.getpid()}.{threading.get_ident()}.tmp"
-    )
     try:
-        CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
-        with open(temp_file, "w", encoding="utf-8") as cache_file:
-            json.dump(result, cache_file)
-            cache_file.flush()
-            os.fsync(cache_file.fileno())
-        os.replace(temp_file, CACHE_FILE)
+        write_text(CACHE_FILE, json.dumps(result, allow_nan=False))
     except (OSError, TypeError, ValueError):
-        try:
-            temp_file.unlink(missing_ok=True)
-        except OSError:
-            pass
+        pass
 
 
 def _is_finite_timestamp(value) -> bool:
@@ -557,7 +557,7 @@ def _parse_version(version: str) -> tuple | None:
             except (ValueError, OverflowError):
                 return None
         else:
-            identifiers.append((1, identifier.lower()))
+            identifiers.append((1, identifier))
     return core, 0, tuple(identifiers)
 
 

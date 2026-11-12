@@ -14,15 +14,14 @@ from __future__ import annotations
 
 import json
 import math
-import os
 import re
-import tempfile
 import time
 from pathlib import Path
 from typing import Callable, Iterable, Mapping, Optional
 
 import requests
 
+from vulnmind._atomic import write_text
 from vulnmind import __version__
 from vulnmind.config import CACHE_DIR
 
@@ -205,7 +204,7 @@ def _read_cache(path: Path, current_time: float) -> tuple[dict[str, dict], bool]
             return {}, False
         with path.open(encoding="utf-8") as handle:
             cached = json.load(handle)
-    except (OSError, UnicodeError, json.JSONDecodeError, TypeError, ValueError):
+    except (OSError, UnicodeError, json.JSONDecodeError, TypeError, ValueError, RecursionError):
         return {}, False
 
     # Accept both VulnMind's envelope and a raw official catalog.  Supporting
@@ -231,25 +230,10 @@ def _read_cache(path: Path, current_time: float) -> tuple[dict[str, dict], bool]
 
 
 def _write_cache(path: Path, payload: object, cached_at: float) -> None:
-    temp_name: Optional[str] = None
     try:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with tempfile.NamedTemporaryFile(
-            "w",
-            encoding="utf-8",
-            dir=path.parent,
-            prefix=f".{path.name}.",
-            delete=False,
-        ) as handle:
-            temp_name = handle.name
-            json.dump({"_cached_at": cached_at, "payload": payload}, handle)
-        os.replace(temp_name, path)
+        write_text(path, json.dumps({"_cached_at": cached_at, "payload": payload}, allow_nan=False))
     except (OSError, TypeError, ValueError):
-        if temp_name:
-            try:
-                os.unlink(temp_name)
-            except OSError:
-                pass
+        pass
 
 
 def _normalize_cve_ids(cve_ids: Iterable[str]) -> list[str]:

@@ -29,8 +29,7 @@ from __future__ import annotations
 
 import json
 import math
-import os
-import tempfile
+import re
 import time
 from dataclasses import replace
 from pathlib import Path
@@ -38,6 +37,7 @@ from typing import Optional
 
 import requests
 
+from vulnmind._atomic import write_text
 from vulnmind import __version__
 from vulnmind.config import CACHE_DIR
 
@@ -45,6 +45,7 @@ NVD_API_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
 NVD_CACHE_DIR = CACHE_DIR / "nvd"
 CACHE_TTL_SECONDS = 30 * 24 * 60 * 60  # 30 days
 MAX_CACHE_FILE_BYTES = 2 * 1024 * 1024
+_CVE_RE = re.compile(r"CVE-[0-9]{4}-[0-9]{4,19}", re.IGNORECASE)
 
 # NVD public rate limit: 5 requests per 30 seconds.
 # Stay comfortably under by sleeping 6.5s between requests.
@@ -70,7 +71,8 @@ def enrich_with_nvd(findings: list, progress_callback=None) -> list:
     cve_set: set[str] = set()
     for f in findings:
         for cve in (f.cve_ids or []):
-            cve_set.add(cve.upper())
+            if isinstance(cve, str) and _CVE_RE.fullmatch(cve):
+                cve_set.add(cve.upper())
 
     if not cve_set:
         return findings
@@ -116,6 +118,8 @@ def lookup_cve(cve_id: str) -> Optional[dict]:
 
     Useful for one-off lookups and testing.
     """
+    if not isinstance(cve_id, str) or not _CVE_RE.fullmatch(cve_id):
+        return None
     cve_id = cve_id.upper()
     cached = _read_cache(cve_id)
     if cached is not None:
@@ -171,7 +175,7 @@ def _fetch_cve(cve_id: str, max_retries: int = 3) -> Optional[dict]:
         if not isinstance(payload, dict):
             return None
 
-        vulnerabilities = payload.get("vulnerabilities", [])
+        vulnerabilities = payload.get("vulnerabilities")
         if not isinstance(vulnerabilities, list):
             return None
         if not vulnerabilities:
@@ -182,6 +186,8 @@ def _fetch_cve(cve_id: str, max_retries: int = 3) -> Optional[dict]:
             return None
         cve = first.get("cve")
         if not isinstance(cve, dict):
+            return None
+        if not isinstance(cve.get("id"), str) or cve["id"].upper() != cve_id.upper():
             return None
         return _normalize_cve(cve_id, cve)
 
@@ -284,7 +290,7 @@ def _apply_to_finding(finding, cve_data: dict):
             continue
         cid = cve_id.upper()
         data = cve_data.get(cid)
-        if not data or not data.get("found"):
+        if not isinstance(data, dict) or data.get("found") is not True:
             continue
         score = data.get("cvss_score")
         if _valid_cvss_score(score):
@@ -370,6 +376,8 @@ def _cache_path(cve_id: str) -> Path:
 
 def _read_cache(cve_id: str) -> Optional[dict]:
     """Return cached CVE data if fresh; None otherwise."""
+    if not isinstance(cve_id, str) or not _CVE_RE.fullmatch(cve_id):
+        return None
     path = _cache_path(cve_id)
     try:
         if not path.exists():
@@ -392,8 +400,12 @@ def _read_cache(cve_id: str) -> Optional[dict]:
         if cached_at > now or now - cached_at > CACHE_TTL_SECONDS:
             return None
         payload = data.get("payload")
-        return payload if isinstance(payload, dict) else None
-    except (OSError, UnicodeError, json.JSONDecodeError, ValueError):
+        if not isinstance(payload, dict) or not isinstance(payload.get("found"), bool):
+            return None
+        if "cve_id" in payload and payload["cve_id"] != cve_id:
+            return None
+        return payload
+    except (OSError, UnicodeError, json.JSONDecodeError, ValueError, RecursionError):
         return None
 
 
@@ -402,27 +414,11 @@ def _write_cache(cve_id: str, payload: dict) -> None:
     if not isinstance(payload, dict):
         return
 
-    temp_path: Optional[Path] = None
+    if not isinstance(cve_id, str) or not _CVE_RE.fullmatch(cve_id):
+        return
     try:
-        NVD_CACHE_DIR.mkdir(parents=True, exist_ok=True)
-        path = _cache_path(cve_id)
-        with tempfile.NamedTemporaryFile(
-            mode="w",
-            encoding="utf-8",
-            dir=NVD_CACHE_DIR,
-            prefix=f".{cve_id}.",
-            suffix=".tmp",
-            delete=False,
-        ) as f:
-            temp_path = Path(f.name)
-            json.dump({"_cached_at": time.time(), "payload": payload}, f)
-            f.flush()
-            os.fsync(f.fileno())
-        os.replace(temp_path, path)
-        temp_path = None
+        write_text(_cache_path(cve_id), json.dumps(
+            {"_cached_at": time.time(), "payload": payload}, allow_nan=False,
+        ))
     except (OSError, TypeError, ValueError):
-        if temp_path is not None:
-            try:
-                temp_path.unlink()
-            except OSError:
-                pass
+        pass

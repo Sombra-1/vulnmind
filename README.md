@@ -1,52 +1,62 @@
-# VulnMind
+<div align="center">
 
-![VulnMind — turn scanner output into prioritized, explainable security findings](docs/assets/vulnmind-banner.png)
+<img src="docs/assets/vulnmind-banner.png" alt="VulnMind — turn scanner output into prioritized, explainable security findings" width="100%">
 
+### Scanner output. Clear priorities. Evidence you can review.
+
+Analyze **nmap · Nuclei · Nikto · Metasploit** output with offline CVE matching,
+explicit confidence, exploit intelligence, and shareable reports.
+
+[![Release](https://img.shields.io/github/v/release/Sombra-1/vulnmind?style=flat-square&color=39c5cf)](https://github.com/Sombra-1/vulnmind/releases/latest)
 [![CI](https://github.com/Sombra-1/vulnmind/actions/workflows/ci.yml/badge.svg)](https://github.com/Sombra-1/vulnmind/actions/workflows/ci.yml)
-[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.10%2B-3776ab?style=flat-square)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-89d185?style=flat-square)](LICENSE)
 
-Security scan analyzer for pentesters. Parse nmap, Nuclei, nikto, and Metasploit console output into structured findings with explicit match confidence, CVE/CVSS context, CISA Known Exploited Vulnerabilities (KEV), public ExploitDB references, remediation advice, suggested commands, and Metasploit modules. Finding analysis is offline by default and requires no API key; normal text output may separately check GitHub Releases for an update.
+[Quick start](#quick-start) · [Features](#features) · [Usage](#usage) · [Cache health](#cache-health) · [Release notes](#changelog)
 
-VulnMind is not a scanner replacement. It turns scanner output into prioritized, explainable findings you can review, pipe to JSON, or export as a PDF report.
+</div>
 
-![VulnMind analyzing sanitized local scanner output](docs/assets/vulnmind-demo.gif)
+---
 
-![Watch the VulnMind technical demo](docs/assets/video-thumbnail.png)
+| Understand the evidence | Prioritize with context | Take the next step |
+| :--- | :--- | :--- |
+| Preserve scanner observations and distinguish reported CVEs from product/version matches. | See CVSS, CISA KEV, public exploit references, and Metasploit signals separately. | Get remediation guidance and follow-up commands; export JSON and PDF. |
 
-The full-resolution video stays out of normal Git history. See the
-[reproducible demo package](tools/demo/README.md) to render and verify it.
+## Quick start
 
+Install with [pipx](#install), then analyze an existing scan:
+
+```bash
+pipx install "vulnmind @ https://github.com/Sombra-1/vulnmind/archive/refs/tags/v0.6.2.tar.gz"
+vulnmind analyze scan.xml
 ```
+
+```bash
+# Combine scanner outputs
+vulnmind analyze scan.xml nuclei.jsonl nikto.txt
+
+# Refresh official CVE scores and exploit intelligence
 vulnmind analyze scan.xml --deep
+
+# Save JSON and a PDF in one run
+vulnmind analyze scan.xml --format json --report pdf --output report.pdf > findings.json
 ```
 
-```
-VulnMind BASIC  ·  1 critical  2 high  2 medium  0 low  (5 total)
+**No API key required.** Finding analysis runs offline by default. `--deep` refreshes external intelligence; `--enrich` enables optional Groq analysis. Normal text output may separately check GitHub for a release; JSON output never checks.
 
-  CRITICAL  http-vuln-cve2021-41773 on 192.168.1.10:80
-  Target: 192.168.1.10:80  [http]
-  Confidence: Scanner Reported
-  CVEs:   CVE-2021-41773
-  Threat intel: Known Exploited CVE — CISA KEV · Public Exploit Reference · Metasploit Module
-  Why critical: Apache 2.4.49 path-traversal / RCE — trivially exploitable and widely weaponised.
+<img src="docs/assets/vulnmind-demo.gif" alt="VulnMind analyzing sanitized local scanner output" width="100%">
 
-  Apache 2.4.49 has a path traversal and remote code execution
-  vulnerability. Widely exploited in the wild.
+<details>
+<summary><strong>New in v0.6.2 — reliability and maintenance</strong></summary>
 
-  Next steps:
-    $ curl -s --path-as-is http://192.168.1.10/cgi-bin/.%2e/%2e%2e/%2e%2e/etc/passwd
-    $ curl -s --path-as-is http://192.168.1.10/icons/.%2e/%2e%2e/%2e%2e/etc/passwd
+- **Cache health:** inspect freshness, corruption, and failed release checks without network access.
+- **Evidence accuracy:** reject mismatched NVD records and preserve separate TCP/UDP NSE findings.
+- **Reliable output:** display scanner text literally; produce JSON and PDF together; handle report-write failures clearly.
+- **Durable caches:** atomic, owner-only writes with interrupted-write coverage for all four caches.
+- **Maintenance tooling:** validate bundled Metasploit paths against pinned Rapid7 metadata.
+- **Release checks:** expand CI to Python 3.10–3.14 and include regression fixtures in the source distribution.
 
-  Metasploit:
-    msf > use exploit/multi/http/apache_normalize_path_rce
-
-  MEDIUM  Open port 22/tcp — OpenSSH 7.2p2
-  Target: 192.168.1.10:22  [ssh]
-  CVEs:   CVE-2018-15473, CVE-2019-6111
-  Why medium: Matched offline KB entry for 'openssh' — known vulnerable service with 2 associated CVE(s).
-  ...
-```
+</details>
 
 ---
 
@@ -55,14 +65,14 @@ VulnMind BASIC  ·  1 critical  2 high  2 medium  0 low  (5 total)
 The recommended install uses pipx, which keeps VulnMind in an isolated environment:
 
 ```bash
-pipx install "vulnmind @ https://github.com/Sombra-1/vulnmind/archive/refs/tags/v0.6.1.tar.gz"
+pipx install "vulnmind @ https://github.com/Sombra-1/vulnmind/archive/refs/tags/v0.6.2.tar.gz"
 ```
 
 Or use pip inside a virtual environment:
 
 ```bash
 python -m venv .venv
-./.venv/bin/python -m pip install "vulnmind @ https://github.com/Sombra-1/vulnmind/archive/refs/tags/v0.6.1.tar.gz"
+./.venv/bin/python -m pip install "vulnmind @ https://github.com/Sombra-1/vulnmind/archive/refs/tags/v0.6.2.tar.gz"
 ```
 
 VulnMind is currently distributed through GitHub Releases rather than PyPI.
@@ -172,6 +182,15 @@ Exploit-intelligence fields are always present with stable types, even when no c
 | `exploit_confidence` | string | Best source: `cisa-kev`, `metasploit-module`, `exploitdb-cve`, or `none` |
 | `exploit_references` | array of strings | At most five supporting source URLs or module IDs |
 
+### Cache health
+
+```bash
+vulnmind cache status
+vulnmind cache status --format json
+```
+
+Inspect NVD, CISA KEV, ExploitDB, and release-check caches without making requests or modifying files. Statuses are `fresh`, `stale`, `corrupt`, `missing`, and `refresh-failed` (the last release check failed). The diagnostic JSON has its own schema and leaves findings JSON unchanged. Inspection is limited to 1,000 NVD cache files per run. A failed KEV/ExploitDB refresh can still use valid stale data; historical refresh errors for those sources are not persisted.
+
 ### Updates
 
 Normal text-mode runs make a short GitHub Releases check at most once per day and show a notice when a newer version exists. The check overlaps analysis and waits no more than a brief bounded grace period at the end. JSON mode never checks. Disable or re-enable automatic checks with `vulnmind config set-update-checks off|on`, or set `VULNMIND_UPDATE_CHECKS=off`. To check or update explicitly:
@@ -185,27 +204,27 @@ Pip and pipx installations update from the exact SemVer release tag returned by 
 
 #### Verify release downloads
 
-For a checksum-verified installation, download the wheel, source distribution, and `SHA256SUMS` from the [v0.6.1 release](https://github.com/Sombra-1/vulnmind/releases/tag/v0.6.1) into an empty directory. With the GitHub CLI:
+For a checksum-verified installation, download the wheel, source distribution, and `SHA256SUMS` from the [v0.6.2 release](https://github.com/Sombra-1/vulnmind/releases/tag/v0.6.2) into an empty directory. With the GitHub CLI:
 
 ```bash
-gh release download v0.6.1 --repo Sombra-1/vulnmind --pattern 'vulnmind-*' --pattern SHA256SUMS
+gh release download v0.6.2 --repo Sombra-1/vulnmind --pattern 'vulnmind-*' --pattern SHA256SUMS
 sha256sum --check SHA256SUMS
 # Continue only if both files report OK. Install into your existing virtualenv:
-python -m pip install ./vulnmind-0.6.1-py3-none-any.whl
+python -m pip install ./vulnmind-0.6.2-py3-none-any.whl
 ```
 
 On macOS, use `shasum -a 256 --check SHA256SUMS`. Checksums apply to the attached wheel and source distribution, not GitHub's automatically generated source archives. They detect damaged or changed downloads; they are not signatures or independent publisher verification. The `vulnmind update` command installs a tag archive and does not verify these asset checksums.
 
 #### Manual rollback
 
-To return a pipx installation to v0.6.0:
+To return a pipx installation to v0.6.1:
 
 ```bash
-pipx install --force "vulnmind @ https://github.com/Sombra-1/vulnmind/archive/refs/tags/v0.6.0.tar.gz"
+pipx install --force "vulnmind @ https://github.com/Sombra-1/vulnmind/archive/refs/tags/v0.6.1.tar.gz"
 vulnmind --version
 ```
 
-For a virtualenv installation, run its `python -m pip install --force-reinstall "vulnmind @ https://github.com/Sombra-1/vulnmind/archive/refs/tags/v0.6.0.tar.gz"`, then its `vulnmind --version`. Keep any custom `PIPX_HOME` setting when using pipx. For source checkouts, preserve local work and check out the desired tag in a separate worktree; use your package manager's downgrade procedure for system packages. Config and caches remain under `~/.vulnmind`; v0.6.1 adds no config or finding-schema migration.
+For a virtualenv installation, run its `python -m pip install --force-reinstall "vulnmind @ https://github.com/Sombra-1/vulnmind/archive/refs/tags/v0.6.1.tar.gz"`, then its `vulnmind --version`. Keep any custom `PIPX_HOME` setting when using pipx. For source checkouts, preserve local work and check out the desired tag in a separate worktree; use your package manager's downgrade procedure for system packages. Config and caches remain under `~/.vulnmind`; v0.6.2 adds no config or finding-schema migration. Existing TCP finding IDs remain unchanged; UDP NSE IDs now include the protocol to prevent collisions.
 
 ---
 
@@ -223,6 +242,9 @@ For a virtualenv installation, run its `python -m pip install --force-reinstall 
 VulnMind auto-detects the format — no need to specify it.
 
 ---
+
+<details>
+<summary><strong>More screenshots and reproducible media</strong></summary>
 
 ## Verified media
 
@@ -242,6 +264,9 @@ tools/demo/verify_media.sh
 ```
 
 ---
+
+
+</details>
 
 ## Features
 
@@ -266,6 +291,9 @@ tools/demo/verify_media.sh
 
 ---
 
+<details>
+<summary><strong>Command reference</strong></summary>
+
 ## All flags
 
 ```
@@ -288,10 +316,15 @@ vulnmind config set-update-checks off|on
 vulnmind config show            Show current config
 vulnmind config clear           Remove all saved config
 
+vulnmind cache status [--format text|json]  Inspect caches offline
+
 vulnmind update [--check-only]  Check/install the latest GitHub release
 ```
 
 ---
+
+
+</details>
 
 ## Adding a parser
 
@@ -324,24 +357,60 @@ python -m venv .venv
 ./.venv/bin/python -m pytest
 ```
 
-The GitHub Actions workflow runs the same suite on Python 3.10, 3.11, and 3.12,
+The GitHub Actions workflow runs the same suite on Python 3.10–3.14,
 then builds and installs the wheel in a fresh virtualenv outside the checkout.
 It checks all five sample formats, JSON fields, bundled KB access, and PDF output.
 Tag pushes also test installation directly from the exact published GitHub tag
 archive on Python 3.10. The smoke checks can be repeated with
-`/path/to/fresh/venv/bin/python tools/check_installed.py tests --version 0.6.1`.
+`/path/to/fresh/venv/bin/python tools/check_installed.py tests --version 0.6.2`.
+
+### Validate bundled Metasploit paths
+
+The developer validator checks canonical module `fullname` values from [Rapid7's official metadata](https://github.com/rapid7/metasploit-framework/blob/master/db/modules_metadata_base.json). The committed fixture is a small extract pinned to the revision recorded in `tools/module-validation.json`; it is used by CI without network access.
+
+```bash
+# Repeat the offline regression check
+python tools/validate_modules.py --metadata tests/fixtures/rapid7-metadata.json
+
+# Explicitly validate against the complete official catalog at a known commit
+python tools/validate_modules.py --online \
+  --revision 6210572159c86f2f1c87370e72635b76951b955d \
+  --output validation.json
+```
+
+The output records the source, revision, timestamp, SHA-256, and missing paths. Validation checks that a module exists; it does not prove that a target is vulnerable. Normal analysis never downloads module metadata.
+
+### Release integrity
+
+Published wheels and source distributions include `SHA256SUMS`. Source distributions also include the regression tests, sample inputs, and developer verification tools. Local notes, credentials, and runtime caches are excluded. Checksums detect altered downloads; they do not authenticate the publisher. Signed attestations remain an evaluated follow-up: the updater continues to install exact release-tag archives and does not claim signature or attestation verification. Failed updates report failure and manual recovery instructions; there is no automatic rollback.
 
 ## Planned updates
 
-- **Next hardening patch:** automate bundled Metasploit module validation against Rapid7 metadata; add cache-health diagnostics and interrupted-write coverage; exercise custom pipx homes and assess signed release attestations.
-- **v0.7.0 candidates:** Nessus input, SARIF/HTML reports, and conservative cross-tool deduplication that retains each scanner's evidence.
+- **v0.7.0 priorities:** SARIF export, Nessus import, standalone HTML reports, and conservative cross-tool deduplication that retains each scanner's evidence.
+- **Maintenance follow-up:** persist per-source refresh outcomes, evaluate signed provenance and its installer verification policy, and broaden real pipx/platform update testing.
 - **Later:** scan comparisons, engagement policy files, and broader CPE-based matching with explicit accuracy tests.
 
-These are priorities for evaluation, not committed release dates. Matching accuracy, offline behavior, and stable JSON remain the release gates.
+These are evaluation priorities, not committed release dates. Matching accuracy, offline behavior, and stable JSON remain the release gates.
 
 ---
 
 ## Changelog
+
+### v0.6.2
+
+- Added offline `cache status` with text and JSON diagnostics.
+- Added pinned Rapid7 module validation and recorded provenance for all 31 bundled paths.
+- Made every intelligence/release cache write atomic, owner-only, flushed, and interruption-safe.
+- Fixed NVD CVE identity validation, invalid identifiers, and malformed cached status handling.
+- Fixed TCP/UDP NSE deduplication and cross-protocol negative-evidence attribution; skip invalid nmap ports.
+- Fixed literal terminal rendering, combined JSON/PDF output, PDF write errors, and report table sizing.
+- Preserve the active custom pipx home when updating; use case-sensitive SemVer prerelease ordering.
+- Expand CI to Python 3.10–3.14 and ship regression fixtures/tooling in source distributions.
+- **226 regression tests**, including failure injection for interrupted writes, malformed input, combined report output, and custom pipx homes.
+
+<details>
+<summary><strong>Earlier releases</strong></summary>
+
 
 ### v0.6.1
 - **Parser fixes** — Nikto multi-target reports retain the correct host/port and exclude target metadata from findings; invalid ports no longer leak through. Nuclei format detection accepts Go-style keys, leading malformed records within the preview, and UTF-8 BOMs.
@@ -408,6 +477,8 @@ These are priorities for evaluation, not committed release dates. Matching accur
 
 ### v0.1.0
 - Initial release
+
+</details>
 
 ---
 
