@@ -17,6 +17,7 @@ from pathlib import Path
 import click
 from rich.console import Console
 from rich.panel import Panel
+from rich.markup import escape
 
 from vulnmind import __version__
 from vulnmind.banner import render as render_banner
@@ -36,7 +37,7 @@ def _print_error(message: str, output_format: str) -> None:
     if output_format == "json":
         click.echo(message, err=True)
     else:
-        console.print(message)
+        console.print(message, markup=False)
 
 
 # ---------------------------------------------------------------------------
@@ -61,6 +62,36 @@ def cli(ctx):
     if ctx.invoked_subcommand is None:
         print_banner()
         console.print(ctx.get_help())
+
+
+# ---------------------------------------------------------------------------
+# Cache diagnostics (read-only, offline)
+# ---------------------------------------------------------------------------
+
+@cli.group()
+def cache():
+    """Inspect local intelligence caches without making network requests."""
+
+
+@cache.command("status")
+@click.option("--format", "output_format", type=click.Choice(["text", "json"]), default="text")
+def cache_status_command(output_format):
+    """Show cache freshness, corruption, and failed release checks."""
+    import json
+    from vulnmind.diagnostics import cache_status
+    result = cache_status()
+    if output_format == "json":
+        click.echo(json.dumps(result, indent=2))
+    else:
+        from rich.table import Table
+        table = Table(title="VulnMind cache health")
+        for column in ("Source", "Status", "Entries", "Path"):
+            table.add_column(column)
+        for row in result["caches"]:
+            table.add_row(row["source"], row["status"], str(row["entries"]), escape(row["path"]))
+        console.print(table)
+        if result["truncated"]:
+            click.echo("Showing the first 1000 NVD cache files.")
 
 
 # ---------------------------------------------------------------------------
@@ -406,6 +437,8 @@ def _run_pipeline(
         sys.exit(1)
 
     if not all_findings:
+        if report == "pdf":
+            _save_pdf([], output, output_format)
         if output_format == "json":
             import json as _json
             sys.stdout.write(_json.dumps([]) + "\n")
@@ -447,6 +480,9 @@ def _run_pipeline(
             quiet=output_format == "json",
         )
 
+    if report == "pdf":
+        _save_pdf(findings, output, output_format)
+
     # --- JSON output ---
     if output_format == "json":
         import json as _json
@@ -460,15 +496,21 @@ def _run_pipeline(
     # --- Display ---
     display_results(findings, enrich)
 
-    # --- PDF ---
-    if report == "pdf":
-        from vulnmind.report import generate_pdf
-        generate_pdf(findings, output)
-        console.print(f"\n[green]Report saved:[/green] {output}")
-
     # --- Update notice (shown last, after everything else) ---
     if update_check_started:
         _show_update_notice()
+
+
+def _save_pdf(findings, output, output_format):
+    """Write a requested report before emitting JSON, with clean error output."""
+    from vulnmind.report import generate_pdf
+    try:
+        generate_pdf(findings, output)
+    except Exception as exc:
+        _print_error(f"Could not generate PDF report: {exc}", output_format)
+        raise click.exceptions.Exit(1) from exc
+    if output_format == "text":
+        console.print(f"\n[green]Report saved:[/green] {escape(output)}")
 
 
 def _show_update_notice() -> None:
@@ -650,18 +692,18 @@ def display_finding_panel(finding):
     }
     priority = finding.priority or "unrated"
     color = priority_colors.get(priority, "dim")
-    priority_badge = f"[{color}]{priority.upper()}[/{color}]"
+    priority_badge = f"[{color}]{escape(priority.upper())}[/{color}]"
 
     lines = []
 
-    service_str = f"  [{finding.service}]" if finding.service else ""
+    service_str = rf"  \[{escape(finding.service)}]" if finding.service else ""
     target = format_target(finding.host, finding.port)
-    lines.append(f"[dim]Target:[/dim] [bold]{target}[/bold]{service_str}")
+    lines.append(f"[dim]Target:[/dim] [bold]{escape(target)}[/bold]{service_str}")
     confidence = (finding.confidence or "weak").replace("-", " ").title()
-    lines.append(f"[dim]Confidence:[/dim] [bold]{confidence}[/bold]")
+    lines.append(f"[dim]Confidence:[/dim] [bold]{escape(confidence)}[/bold]")
 
     if finding.cve_ids:
-        lines.append(f"[dim]CVEs:[/dim]   [cyan]{', '.join(finding.cve_ids)}[/cyan]")
+        lines.append(f"[dim]CVEs:[/dim]   [cyan]{escape(', '.join(finding.cve_ids))}[/cyan]")
 
     if finding.cvss_score is not None:
         lines.append(f"[dim]CVSS:[/dim]   [bold]{finding.cvss_score:.1f}[/bold]")
@@ -677,42 +719,42 @@ def display_finding_panel(finding):
         lines.append(f"[dim]Threat intel:[/dim] {'  ·  '.join(intel_tags)}")
 
     if finding.priority_reason:
-        lines.append(f"[dim]Why {finding.priority or 'this priority'}:[/dim] [dim italic]{finding.priority_reason}[/dim italic]")
+        lines.append(f"[dim]Why {escape(finding.priority or 'this priority')}:[/dim] [dim italic]{escape(finding.priority_reason)}[/dim italic]")
 
     lines.append("")
 
     if finding.ai_explanation:
-        lines.append(finding.ai_explanation)
+        lines.append(escape(finding.ai_explanation))
     else:
-        lines.append(f"[dim]{finding.description}[/dim]")
+        lines.append(f"[dim]{escape(finding.description)}[/dim]")
 
     if finding.remediation:
         lines.append("")
         lines.append("[bold]Remediation:[/bold]")
-        lines.append(f"  [blue]{finding.remediation}[/blue]")
+        lines.append(f"  [blue]{escape(finding.remediation)}[/blue]")
 
     if finding.suggested_commands:
         lines.append("")
         lines.append("[bold]Next steps:[/bold]")
         for cmd in finding.suggested_commands:
-            lines.append(f"  [green]$[/green] [white]{cmd}[/white]")
+            lines.append(f"  [green]$[/green] [white]{escape(cmd)}[/white]")
 
     if finding.metasploit_modules:
         lines.append("")
         lines.append("[bold]Metasploit:[/bold]")
         for mod in finding.metasploit_modules:
-            lines.append(f"  [red]msf[/red] [dim]>[/dim] use {mod}")
+            lines.append(f"  [red]msf[/red] [dim]>[/dim] use {escape(mod)}")
 
     if finding.false_positive_likelihood in ("medium", "high"):
         lines.append("")
         fp_color = "yellow" if finding.false_positive_likelihood == "medium" else "orange1"
         lines.append(f"[{fp_color}]! False positive likelihood: {finding.false_positive_likelihood}[/{fp_color}]")
         if finding.false_positive_reason:
-            lines.append(f"[dim]  {finding.false_positive_reason}[/dim]")
+            lines.append(f"[dim]  {escape(finding.false_positive_reason)}[/dim]")
 
     console.print(Panel(
         "\n".join(lines),
-        title=f"{priority_badge}  [bold]{finding.title}[/bold]",
+        title=f"{priority_badge}  [bold]{escape(finding.title)}[/bold]",
         border_style=color,
         padding=(1, 2),
     ))

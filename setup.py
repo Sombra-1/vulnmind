@@ -18,7 +18,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="vulnmind",
-    version="0.6.1",
+    version="0.6.2",
     description="Security scan analyzer with CVE confidence and exploit intelligence",
     long_description=(open("README.md").read() if __import__("os").path.exists("README.md") else ""),
     long_description_content_type="text/markdown",
@@ -60,6 +60,8 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
         "Operating System :: POSIX :: Linux",
         "Topic :: Security",
         "Environment :: Console",

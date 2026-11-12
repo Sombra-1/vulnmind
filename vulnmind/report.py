@@ -1,7 +1,7 @@
 """
 report.py — Generate professional PDF security reports with ReportLab.
 
-This is a Enrich-only feature, gated before this module is imported.
+PDF output is available with or without optional AI enrichment.
 
 Why ReportLab?
   Most established Python PDF library. Full control over layout.
@@ -177,7 +177,7 @@ def _build_cover(findings: list, styles: dict) -> list:
         ["Total Findings", "Critical", "High", "Medium", "Low"],
         [str(len(findings)), str(critical), str(high), str(medium), str(low)],
     ]
-    stat_table = Table(stat_data, colWidths=[1.5 * inch] * 5)
+    stat_table = Table(stat_data, colWidths=[1.4 * inch] * 5)
     stat_table.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), VULNMIND_BLUE),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
@@ -218,7 +218,7 @@ def _build_summary_table(findings: list, styles: dict) -> list:
         title = finding.title[:55] + "…" if len(finding.title) > 55 else finding.title
         data.append([
             str(i),
-            safe_text(finding.host),
+            Paragraph(safe_text(finding.host), styles["table_body"]),
             str(finding.port) if finding.port else "-",
             # Use Paragraph for the title cell so long text wraps
             Paragraph(safe_text(title), styles["table_body"]),

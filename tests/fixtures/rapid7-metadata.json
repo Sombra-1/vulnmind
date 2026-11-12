@@ -1,0 +1,157 @@
+{
+  "auxiliary_admin/mysql/mysql_enum": {
+    "fullname": "auxiliary/admin/mysql/mysql_enum",
+    "type": "auxiliary",
+    "ref_name": "admin/mysql/mysql_enum"
+  },
+  "auxiliary_scanner/ftp/ftp_anonymous": {
+    "fullname": "auxiliary/scanner/ftp/ftp_anonymous",
+    "type": "auxiliary",
+    "ref_name": "scanner/ftp/ftp_anonymous"
+  },
+  "auxiliary_scanner/ftp/ftp_login": {
+    "fullname": "auxiliary/scanner/ftp/ftp_login",
+    "type": "auxiliary",
+    "ref_name": "scanner/ftp/ftp_login"
+  },
+  "auxiliary_scanner/http/tomcat_mgr_login": {
+    "fullname": "auxiliary/scanner/http/tomcat_mgr_login",
+    "type": "auxiliary",
+    "ref_name": "scanner/http/tomcat_mgr_login"
+  },
+  "auxiliary_scanner/mongodb/mongodb_login": {
+    "fullname": "auxiliary/scanner/mongodb/mongodb_login",
+    "type": "auxiliary",
+    "ref_name": "scanner/mongodb/mongodb_login"
+  },
+  "auxiliary_scanner/mssql/mssql_login": {
+    "fullname": "auxiliary/scanner/mssql/mssql_login",
+    "type": "auxiliary",
+    "ref_name": "scanner/mssql/mssql_login"
+  },
+  "auxiliary_scanner/mysql/mysql_login": {
+    "fullname": "auxiliary/scanner/mysql/mysql_login",
+    "type": "auxiliary",
+    "ref_name": "scanner/mysql/mysql_login"
+  },
+  "auxiliary_scanner/postgres/postgres_login": {
+    "fullname": "auxiliary/scanner/postgres/postgres_login",
+    "type": "auxiliary",
+    "ref_name": "scanner/postgres/postgres_login"
+  },
+  "auxiliary_scanner/rdp/ms12_020_check": {
+    "fullname": "auxiliary/scanner/rdp/ms12_020_check",
+    "type": "auxiliary",
+    "ref_name": "scanner/rdp/ms12_020_check"
+  },
+  "auxiliary_scanner/redis/redis_login": {
+    "fullname": "auxiliary/scanner/redis/redis_login",
+    "type": "auxiliary",
+    "ref_name": "scanner/redis/redis_login"
+  },
+  "auxiliary_scanner/smb/smb_ms17_010": {
+    "fullname": "auxiliary/scanner/smb/smb_ms17_010",
+    "type": "auxiliary",
+    "ref_name": "scanner/smb/smb_ms17_010"
+  },
+  "auxiliary_scanner/ssh/ssh_enumusers": {
+    "fullname": "auxiliary/scanner/ssh/ssh_enumusers",
+    "type": "auxiliary",
+    "ref_name": "scanner/ssh/ssh_enumusers"
+  },
+  "auxiliary_scanner/ssh/ssh_login": {
+    "fullname": "auxiliary/scanner/ssh/ssh_login",
+    "type": "auxiliary",
+    "ref_name": "scanner/ssh/ssh_login"
+  },
+  "auxiliary_scanner/telnet/telnet_login": {
+    "fullname": "auxiliary/scanner/telnet/telnet_login",
+    "type": "auxiliary",
+    "ref_name": "scanner/telnet/telnet_login"
+  },
+  "auxiliary_scanner/upnp/ssdp_msearch": {
+    "fullname": "auxiliary/scanner/upnp/ssdp_msearch",
+    "type": "auxiliary",
+    "ref_name": "scanner/upnp/ssdp_msearch"
+  },
+  "exploit_linux/local/docker_daemon_privilege_escalation": {
+    "fullname": "exploit/linux/local/docker_daemon_privilege_escalation",
+    "type": "exploit",
+    "ref_name": "linux/local/docker_daemon_privilege_escalation"
+  },
+  "exploit_linux/redis/redis_replication_cmd_exec": {
+    "fullname": "exploit/linux/redis/redis_replication_cmd_exec",
+    "type": "exploit",
+    "ref_name": "linux/redis/redis_replication_cmd_exec"
+  },
+  "exploit_linux/samba/is_known_pipename": {
+    "fullname": "exploit/linux/samba/is_known_pipename",
+    "type": "exploit",
+    "ref_name": "linux/samba/is_known_pipename"
+  },
+  "exploit_multi/http/apache_normalize_path_rce": {
+    "fullname": "exploit/multi/http/apache_normalize_path_rce",
+    "type": "exploit",
+    "ref_name": "multi/http/apache_normalize_path_rce"
+  },
+  "exploit_multi/http/oracle_weblogic_wsat_deserialization_rce": {
+    "fullname": "exploit/multi/http/oracle_weblogic_wsat_deserialization_rce",
+    "type": "exploit",
+    "ref_name": "multi/http/oracle_weblogic_wsat_deserialization_rce"
+  },
+  "exploit_multi/http/tomcat_mgr_upload": {
+    "fullname": "exploit/multi/http/tomcat_mgr_upload",
+    "type": "exploit",
+    "ref_name": "multi/http/tomcat_mgr_upload"
+  },
+  "exploit_multi/http/weblogic_admin_handle_rce": {
+    "fullname": "exploit/multi/http/weblogic_admin_handle_rce",
+    "type": "exploit",
+    "ref_name": "multi/http/weblogic_admin_handle_rce"
+  },
+  "exploit_multi/misc/java_rmi_server": {
+    "fullname": "exploit/multi/misc/java_rmi_server",
+    "type": "exploit",
+    "ref_name": "multi/misc/java_rmi_server"
+  },
+  "exploit_multi/postgres/postgres_copy_from_program_cmd_exec": {
+    "fullname": "exploit/multi/postgres/postgres_copy_from_program_cmd_exec",
+    "type": "exploit",
+    "ref_name": "multi/postgres/postgres_copy_from_program_cmd_exec"
+  },
+  "exploit_multi/samba/usermap_script": {
+    "fullname": "exploit/multi/samba/usermap_script",
+    "type": "exploit",
+    "ref_name": "multi/samba/usermap_script"
+  },
+  "exploit_unix/ftp/proftpd_modcopy_exec": {
+    "fullname": "exploit/unix/ftp/proftpd_modcopy_exec",
+    "type": "exploit",
+    "ref_name": "unix/ftp/proftpd_modcopy_exec"
+  },
+  "exploit_unix/ftp/vsftpd_234_backdoor": {
+    "fullname": "exploit/unix/ftp/vsftpd_234_backdoor",
+    "type": "exploit",
+    "ref_name": "unix/ftp/vsftpd_234_backdoor"
+  },
+  "exploit_windows/iis/iis_webdav_scstoragepathfromurl": {
+    "fullname": "exploit/windows/iis/iis_webdav_scstoragepathfromurl",
+    "type": "exploit",
+    "ref_name": "windows/iis/iis_webdav_scstoragepathfromurl"
+  },
+  "exploit_windows/mssql/mssql_payload": {
+    "fullname": "exploit/windows/mssql/mssql_payload",
+    "type": "exploit",
+    "ref_name": "windows/mssql/mssql_payload"
+  },
+  "exploit_windows/rdp/cve_2019_0708_bluekeep_rce": {
+    "fullname": "exploit/windows/rdp/cve_2019_0708_bluekeep_rce",
+    "type": "exploit",
+    "ref_name": "windows/rdp/cve_2019_0708_bluekeep_rce"
+  },
+  "exploit_windows/smb/ms17_010_eternalblue": {
+    "fullname": "exploit/windows/smb/ms17_010_eternalblue",
+    "type": "exploit",
+    "ref_name": "windows/smb/ms17_010_eternalblue"
+  }
+}

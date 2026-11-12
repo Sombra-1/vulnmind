@@ -1,6 +1,6 @@
 """Exercise a non-editable installation from outside the source checkout.
 
-Usage: /path/to/venv/bin/python tools/check_installed.py tests --version 0.6.1
+Usage: /path/to/venv/bin/python tools/check_installed.py tests --version 0.6.2
 """
 
 import argparse
@@ -49,8 +49,14 @@ def main():
                 assert isinstance(finding["exploit_references"], list)
             print(f"{fixture}: {len(payload)} findings, valid JSON")
 
+        status = json.loads(run("cache", "status", "--format", "json"))
+        assert status["schema_version"] == 1
+        assert {row["source"] for row in status["caches"]} == {"nvd", "cisa-kev", "exploitdb", "updates"}
+
         pdf = Path(directory) / "report.pdf"
-        run("analyze", str(fixtures / "sample_nmap.xml"), "--report", "pdf", "--output", str(pdf))
+        payload = json.loads(run("analyze", str(fixtures / "sample_nmap.xml"), "--format", "json",
+                                 "--report", "pdf", "--output", str(pdf)))
+        assert len(payload) == 5
         assert pdf.read_bytes().startswith(b"%PDF-")
         print(f"VulnMind {args.version}: installed CLI, bundled KB, JSON and PDF smoke checks passed")
 

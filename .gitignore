@@ -51,3 +51,11 @@ vulnmind_report.*
 # Ad-hoc scratch files generated during tools/ scripts
 tools/staging/nvd_extracted.json
 tools/staging/manual_additions.json
+
+# Local agent notes and credentials
+CLAUDE.md
+AGENTS.md
+.env
+.env.*
+*.pem
+*.key

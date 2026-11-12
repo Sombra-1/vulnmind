@@ -111,7 +111,12 @@ class NmapParser(BaseParser):
                 if state_elem is None or state_elem.get("state") != "open":
                     continue  # Skip closed/filtered ports
 
-                port_num = int(port_elem.get("portid", 0))
+                try:
+                    port_num = int(port_elem.get("portid", ""))
+                except ValueError:
+                    continue
+                if not 1 <= port_num <= 65535:
+                    continue
                 protocol = port_elem.get("protocol", "tcp")
                 service_elem = port_elem.find("service")
                 service_info = self._parse_service(service_elem)
@@ -240,7 +245,7 @@ class NmapParser(BaseParser):
             if cve_ids:
                 description += f" Associated CVEs: {', '.join(cve_ids)}"
 
-            finding_id = make_finding_id(host, port, script_id)
+            finding_id = make_finding_id(host, port, script_id if protocol == "tcp" else f"{protocol}:{script_id}")
             if finding_id in seen_ids:
                 continue
 
@@ -406,7 +411,7 @@ class NmapParser(BaseParser):
                 current_port is not None
                 and _script_blocks_kb_inference(current_script_name, output)
             ):
-                key = (current_host, current_port)
+                key = (current_host, current_port, current_protocol)
                 blocked_script_evidence.setdefault(key, []).append(
                     f"{current_script_name}: {output[:500]}"
                 )
@@ -415,7 +420,10 @@ class NmapParser(BaseParser):
                 )
 
             if is_vuln and current_port is not None:
-                finding_id = make_finding_id(current_host, current_port, current_script_name)
+                finding_id = make_finding_id(
+                    current_host, current_port, current_script_name if current_protocol == "tcp"
+                    else f"{current_protocol}:{current_script_name}",
+                )
                 if finding_id not in seen_ids:
                     title = f"{current_script_name} on {current_host}:{current_port}"
                     # Include service context in evidence so matcher can detect
@@ -460,7 +468,7 @@ class NmapParser(BaseParser):
                         pr,
                         {"name": svc, "display": svc},
                         file_path,
-                        blocked_script_evidence=blocked_script_evidence.get((h, p)),
+                        blocked_script_evidence=blocked_script_evidence.get((h, p, pr)),
                     )
                     if f.id not in seen_ids:
                         findings.append(f)
@@ -480,6 +488,9 @@ class NmapParser(BaseParser):
             if m and current_host:
                 flush_script()
                 current_port = int(m.group(1))
+                if not 1 <= current_port <= 65535:
+                    current_port = None
+                    continue
                 current_protocol = m.group(2)
                 current_service = m.group(4)
                 version = m.group(5).strip() if m.group(5) else ""
@@ -518,7 +529,7 @@ class NmapParser(BaseParser):
                     "display": svc,
                 },
                 file_path,
-                blocked_script_evidence=blocked_script_evidence.get((h, p)),
+                blocked_script_evidence=blocked_script_evidence.get((h, p, pr)),
             )
             if f.id not in seen_ids:
                 findings.append(f)
@@ -529,13 +540,13 @@ class NmapParser(BaseParser):
         # script finding on that port so version-only matching cannot reverse
         # the dedicated check after parsing.
         for index, finding in enumerate(findings):
-            evidence = blocked_script_evidence.get((finding.host, finding.port))
+            evidence = blocked_script_evidence.get((finding.host, finding.port, finding.protocol))
             if evidence and not finding.title.startswith("Open port "):
                 findings[index] = _attach_blocked_script_evidence(
                     finding,
                     evidence,
                     negated_cves_by_port.get(
-                        (finding.host, finding.port),
+                        (finding.host, finding.port, finding.protocol),
                         set(),
                     ),
                 )
